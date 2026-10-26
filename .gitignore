@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+*.user
+node_modules/
+web/dist/
+src/Hateeze.App/wwwroot/
+dist/
+installer/Output/
+*.log
+TestResults/
+.claude/settings.local.json
+.claude/
