@@ -1,0 +1,1089 @@
+{
+  "$comment": "Каталог установщика hateeze. Проверено вживую 2026-10-26 (curl -sIL с IP в Эстонии, CF-RAY TLL; DNS = AdGuard). Поля: см. раздел 1.2 в app-installers-ddu-update.md. Порядок sources = приоритет. 'resolve' описывает, как получить финальный URL/версию. Значения size/lastModified — справочные (на момент проверки), НЕ использовать как константы.",
+  "schema": 1,
+  "verifiedAt": "2026-10-26",
+  "apps": [
+    {
+      "id": "discord",
+      "title": "Discord",
+      "category": "Общение",
+      "description_ru": "Голосовой и текстовый чат для геймеров (стабильная ветка).",
+      "winget": "Discord.Discord",
+      "scope": "user",
+      "launch": "unelevated",
+      "installerType": "squirrel-exe",
+      "sources": [
+        {
+          "kind": "redirect",
+          "url": "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64",
+          "versionFromFinalUrl": "/win/x64/(\\d+\\.\\d+\\.\\d+)/DiscordSetup\\.exe$",
+          "observed": {
+            "final": "https://stable.dl2.discordapp.net/distro/app/stable/win/x64/1.0.9265/DiscordSetup.exe",
+            "contentType": "application/x-msdownload",
+            "size": 145745848,
+            "lastModified": "2026-10-22"
+          }
+        }
+      ],
+      "doNotUse": [
+        "https://discord.com/api/download?platform=win  (отдаёт x86 1.0.9059 от 2024-09-04!)"
+      ],
+      "silentArgs": "-s",
+      "successCodes": [
+        0
+      ],
+      "postInstall": "Squirrel сам запускает Discord после установки.",
+      "detect": {
+        "hive": "HKCU",
+        "keyNames": [
+          "Discord"
+        ],
+        "versionValue": "DisplayVersion",
+        "quietUninstall": "%LocalAppData%\\Discord\\Update.exe --uninstall -s"
+      },
+      "signerCn": [
+        "Discord Inc."
+      ],
+      "region": {
+        "ru": "blocked",
+        "note_ru": "Discord заблокирован РКН с октября 2024: discord.com и CDN могут быть недоступны без VPN. winget скачивает с того же stable.dl2.discordapp.net — fallback не поможет."
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "exitlag",
+      "title": "ExitLag",
+      "category": "Сеть",
+      "description_ru": "Сервис маршрутизации игрового трафика (платный). Может снизить пинг/потери при плохом маршруте провайдера.",
+      "winget": null,
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "inno",
+      "sources": [
+        {
+          "kind": "catalog-pinned",
+          "url": "https://cdn.exitlag.com/SetupExitLag-5.23.3-x64.exe",
+          "version": "5.23.3",
+          "observed": {
+            "contentType": "application/x-msdownload",
+            "size": 94003128,
+            "lastModified": "2026-10-05"
+          }
+        },
+        {
+          "kind": "open-page",
+          "url": "https://www.exitlag.com/download",
+          "note": "Страница за Cloudflare challenge: curl/HttpClient получают 403. Ссылка на exe видна только в настоящем браузере."
+        }
+      ],
+      "doNotUse": [
+        "https://cdn.exitlag.com/SetupExitLag_v43051.exe (старый, 2025-01-14)",
+        "https://cdn.exitlag.com/SetupExitLag.exe (404)",
+        "https://cdn.exitlag.com/SetupExitLag-latest-x64.exe (404)"
+      ],
+      "silentArgs": "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-",
+      "successCodes": [
+        0
+      ],
+      "rebootCodes": [],
+      "detect": {
+        "hive": "HKLM64",
+        "keyNames": [
+          "{58571ef5-099f-447d-bb15-d2350dd0b449}_is1"
+        ],
+        "displayNameRegex": "^ExitLag( version)?",
+        "versionValue": "DisplayVersion",
+        "installLocation": "C:\\Program Files\\ExitLag\\",
+        "quietUninstall": "\"C:\\Program Files\\ExitLag\\unins000.exe\" /SILENT"
+      },
+      "signerCn": [
+        "Skowsand Tecnologia Ltda"
+      ],
+      "region": {
+        "ru": "unknown",
+        "note_ru": "Доступность cdn.exitlag.com из РФ НЕ ПРОВЕРЕНА."
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "faceit-ac",
+      "title": "FACEIT Anti-Cheat",
+      "category": "Античит",
+      "description_ru": "Античит платформы FACEIT (драйвер ядра). Нужен для матчей FACEIT в CS2.",
+      "winget": "FACEITLTD.FACEITAC",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "inno",
+      "sources": [
+        {
+          "kind": "static",
+          "url": "https://anticheat-client.faceit-cdn.net/FACEITInstaller_64.exe",
+          "observed": {
+            "contentType": "application/x-msdownload",
+            "size": 115744104,
+            "lastModified": "2026-10-19"
+          }
+        }
+      ],
+      "silentArgs": "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART",
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "hive": "HKLM64",
+        "keyNames": [
+          "{1419E44C-0EF4-4822-9194-9F1A4D43973D}_is1"
+        ],
+        "displayNameRegex": "^FACEIT Anti-Cheat$",
+        "versionValue": "DisplayVersion",
+        "versionNote": "DisplayVersion = '2.1' и не меняется между сборками — для 'актуальности' сравнивать ETag/Last-Modified источника или FileVersion faceitclient.exe",
+        "file": "C:\\Program Files\\FACEIT AC\\faceitclient.exe"
+      },
+      "signerCn": [
+        "ESL FACEIT Group Ltd."
+      ],
+      "region": {
+        "ru": "unknown",
+        "note_ru": "НЕ ПРОВЕРЕНО из РФ."
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "faceit-client",
+      "title": "FACEIT (клиент)",
+      "category": "Игровые платформы",
+      "description_ru": "Клиент платформы FACEIT.",
+      "winget": "FACEITLTD.FACEITClient",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "exe",
+      "sources": [
+        {
+          "kind": "static",
+          "url": "https://faceit-client.faceit-cdn.net/release/FACEIT-setup-latest.exe",
+          "observed": {
+            "contentType": "application/octet-stream",
+            "size": 171633640,
+            "lastModified": "2026-10-14"
+          }
+        }
+      ],
+      "doNotUse": [
+        "https://client-updater.faceit-cdn.net/... (хост не отвечает)"
+      ],
+      "silentArgs": "--silent",
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "displayNameRegex": "^FACEIT$",
+        "publisherRegex": "FACEIT",
+        "note": "НЕ ПРОВЕРЕНО (клиент не установлен на машине разработчика)"
+      },
+      "signerCn": [
+        "ESL FACEIT Group Ltd.",
+        "FACEIT Ltd."
+      ],
+      "region": {
+        "ru": "unknown"
+      },
+      "signerVerified": false
+    },
+    {
+      "id": "valorant",
+      "title": "VALORANT + Riot Client",
+      "category": "Игры",
+      "description_ru": "Установщик Riot Client с VALORANT и античитом Vanguard. Регион влияет только на стартовые настройки установщика; для РФ — EU.",
+      "winget": "RiotGames.Valorant.{EU|NA|AP|KR|BR|LATAM}",
+      "scope": "user",
+      "launch": "unelevated",
+      "installerType": "riot-exe",
+      "regions": [
+        "eu",
+        "na",
+        "ap",
+        "kr",
+        "br",
+        "latam"
+      ],
+      "defaultRegionForRu": "eu",
+      "sources": [
+        {
+          "kind": "static-template",
+          "url": "https://valorant.secure.dyn.riotcdn.net/channels/public/x/installer/current/live.live.{region}.exe",
+          "observed": {
+            "contentType": "application/x-msdownload",
+            "size": 75182824,
+            "lastModified": "2026-09-01",
+            "contentDisposition": "Install VALORANT.exe",
+            "status": "200 для eu,na,ap,kr,br,latam; 404 для ru"
+          }
+        }
+      ],
+      "silentArgs": "--skip-to-install --disable-auto-launch",
+      "optionalArgs": {
+        "installPath": "--install-path=\"<PATH>\"",
+        "log": "--log-root=\"<PATH>\""
+      },
+      "successCodes": [
+        0
+      ],
+      "postInstall": "Vanguard (vgk) требует перезагрузки. На Windows 11 Vanguard требует TPM 2.0 и Secure Boot (ошибки VAN 9001/9003).",
+      "detect": {
+        "hive": "HKCU",
+        "keyNames": [
+          "Riot Game valorant.live"
+        ],
+        "alsoKeys": [
+          "Riot Game Riot_Client."
+        ],
+        "versionValue": null,
+        "versionNote": "DisplayVersion ПУСТОЙ — версию не показываем, только факт установки",
+        "files": [
+          "C:\\ProgramData\\Riot Games\\RiotClientInstalls.json"
+        ],
+        "vanguardKeyHklm": "Riot Vanguard"
+      },
+      "signerCn": [
+        "Riot Games, Inc."
+      ],
+      "region": {
+        "ru": "unknown",
+        "note_ru": "Установщик региона ru для VALORANT не существует (404). Доступность riotcdn.net из РФ НЕ ПРОВЕРЕНА."
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "lol",
+      "title": "League of Legends",
+      "category": "Игры",
+      "description_ru": "Установщик League of Legends (через Riot Client). Опционально.",
+      "winget": "RiotGames.LeagueOfLegends.{EUW|EUNE|NA|RU|TR|JP|KR|BR|LA1|LA2|OC1|PH2|SG2|TH2|TW2|VN2|PBE}",
+      "scope": "user",
+      "launch": "unelevated",
+      "installerType": "riot-exe",
+      "regions": [
+        "euw",
+        "eune",
+        "na",
+        "ru",
+        "tr",
+        "jp",
+        "kr",
+        "br",
+        "la1",
+        "la2",
+        "oc1",
+        "me1",
+        "ph2",
+        "sg2",
+        "th2",
+        "tw2",
+        "vn2"
+      ],
+      "sources": [
+        {
+          "kind": "static-template",
+          "url": "https://lol.secure.dyn.riotcdn.net/channels/public/x/installer/current/live.{region}.exe",
+          "observed": {
+            "contentType": "application/x-msdownload",
+            "size": 75831040,
+            "lastModified": "2026-08-12",
+            "status": "200 для всех regions выше; 404 для lan,las,oce,ph,sg,th,tw,vn"
+          }
+        },
+        {
+          "kind": "static",
+          "id": "pbe",
+          "url": "https://lol.secure.dyn.riotcdn.net/channels/public/x/installer/current/pbe.pbe.exe",
+          "note": "из winget-манифеста, вживую НЕ ПРОВЕРЕНО"
+        }
+      ],
+      "silentArgs": "--skip-to-install --disable-auto-launch",
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "hive": "HKCU",
+        "keyNames": [
+          "Riot Game league_of_legends.live"
+        ],
+        "versionValue": null
+      },
+      "signerCn": [
+        "Riot Games, Inc."
+      ],
+      "region": {
+        "ru": "unknown",
+        "note_ru": "Установщик live.ru.exe существует (200). Работа RU-сервера НЕ ПРОВЕРЕНА."
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "steam",
+      "title": "Steam",
+      "category": "Игровые платформы",
+      "description_ru": "Клиент Steam (Valve).",
+      "winget": "Valve.Steam",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "nullsoft",
+      "sources": [
+        {
+          "kind": "static",
+          "url": "https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe",
+          "observed": {
+            "contentType": "application/octet-stream",
+            "size": 2380800,
+            "lastModified": "2024-05-20",
+            "etag": "664bcd75-245400"
+          }
+        }
+      ],
+      "silentArgs": "/S",
+      "successCodes": [
+        0
+      ],
+      "postInstall": "Установщик — загрузчик; при первом запуске Steam докачивает клиент.",
+      "detect": {
+        "hive": "HKLM32",
+        "keyNames": [
+          "Steam"
+        ],
+        "versionValue": "DisplayVersion",
+        "versionNote": "DisplayVersion (2.10.91.91) — версия установщика, а не клиента",
+        "installPathValue": "HKLM\\SOFTWARE\\WOW6432Node\\Valve\\Steam\\InstallPath",
+        "files": [
+          "%ProgramFiles(x86)%\\Steam\\steam.exe"
+        ]
+      },
+      "signerCn": [
+        "Valve Corp."
+      ],
+      "region": {
+        "ru": "available",
+        "note_ru": "РКН 2026-06-02 опроверг блокировку Steam; возможны сбои у отдельных провайдеров."
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "epic",
+      "title": "Epic Games Launcher",
+      "category": "Игровые платформы",
+      "description_ru": "Лаунчер Epic Games Store (MSI-установщик).",
+      "winget": "EpicGames.EpicGamesLauncher",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "msi",
+      "sources": [
+        {
+          "kind": "redirect",
+          "url": "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi",
+          "observed": {
+            "final": "https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.3.3.msi?launcherfilename=EpicInstaller-20.3.3.msi",
+            "contentType": "application/x-ole-storage",
+            "size": 264237056,
+            "lastModified": "2026-09-24"
+          }
+        }
+      ],
+      "silentArgs": "msiexec /i \"<file>\" /qn /norestart /l*v \"<log>\"",
+      "successCodes": [
+        0,
+        1641,
+        3010
+      ],
+      "rebootCodes": [
+        1641,
+        3010
+      ],
+      "detect": {
+        "msiUpgradeCode": "{D0769F44-D459-450F-B084-CAE38062C75B}",
+        "displayNameRegex": "^Epic Games Launcher$",
+        "versionValue": "DisplayVersion",
+        "note": "ProductCode меняется с версией (на машине: {D4744863-43C4-4FB1-99BA-1E81D3FC8585} = 1.3.193.0; в winget для 1.3.210.0: {0716D12C-C7A6-4C1B-A5BB-E23B7160250D})"
+      },
+      "signerCn": [
+        "Epic Games Inc.",
+        "Epic Games, Inc."
+      ],
+      "region": {
+        "ru": "unknown",
+        "note_ru": "РКН штрафует Epic (2026) за нелокализацию данных; блокировки не подтверждено."
+      },
+      "signerVerified": false
+    },
+    {
+      "id": "battlenet",
+      "title": "Battle.net",
+      "category": "Игровые платформы",
+      "description_ru": "Лаунчер Blizzard Battle.net.",
+      "winget": "Blizzard.BattleNet",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "exe",
+      "sources": [
+        {
+          "kind": "redirect",
+          "url": "https://downloader.battle.net/download/getInstallerForGame?os=win&gameProgram=BATTLENET_APP&version=Live",
+          "observed": {
+            "final": "https://downloader.battle.net/download/installer/win/1.0.68/Battle.net-Setup.exe",
+            "contentType": "application/x-msdos-program",
+            "size": 4700880,
+            "lastModified": "2026-10-20"
+          }
+        },
+        {
+          "kind": "redirect",
+          "url": "https://downloader.battle.net/download/getInstaller?os=win&installer=Battle.net-Setup.exe",
+          "note": "URL из winget, ведёт туда же (проверено)"
+        }
+      ],
+      "silentArgs": "--lang=ruRU --installpath=\"C:\\Program Files (x86)\\Battle.net\"",
+      "silentNote": "Официального тихого режима НЕТ: окно установщика показывается. Аргументы — из winget/сторонних гайдов, НЕ ПРОВЕРЕНО.",
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "hive": "HKLM32",
+        "keyNames": [
+          "Battle.net"
+        ],
+        "versionValue": "DisplayVersion"
+      },
+      "signerCn": [
+        "Blizzard Entertainment, Inc."
+      ],
+      "region": {
+        "ru": "unknown"
+      },
+      "signerVerified": false
+    },
+    {
+      "id": "chrome",
+      "title": "Google Chrome",
+      "category": "Браузеры",
+      "description_ru": "Браузер Google Chrome (корпоративный MSI x64, офлайн).",
+      "winget": "Google.Chrome",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "msi",
+      "sources": [
+        {
+          "kind": "static",
+          "url": "https://dl.google.com/dl/chrome/install/googlechromestandaloneenterprise64.msi",
+          "observed": {
+            "contentType": "application/x-msi",
+            "size": 170979328,
+            "lastModified": "2026-10-23"
+          }
+        },
+        {
+          "kind": "static",
+          "url": "https://dl.google.com/chrome/install/GoogleChromeStandaloneEnterprise64.msi",
+          "note": "тот же ETag"
+        }
+      ],
+      "silentArgs": "msiexec /i \"<file>\" /qn /norestart",
+      "successCodes": [
+        0,
+        1641,
+        3010
+      ],
+      "rebootCodes": [
+        1641,
+        3010
+      ],
+      "detect": {
+        "hive": "HKLM32",
+        "keyNames": [
+          "Google Chrome"
+        ],
+        "versionValue": "DisplayVersion",
+        "alsoHkcu": "HKCU ...\\Uninstall\\Google Chrome (пользовательская установка)",
+        "msiUpgradeCode": "{C1DFDF69-5945-32F2-A35E-EE94C99C7CF4}"
+      },
+      "signerCn": [
+        "Google LLC"
+      ],
+      "region": {
+        "ru": "available"
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "firefox",
+      "title": "Mozilla Firefox",
+      "category": "Браузеры",
+      "description_ru": "Браузер Firefox, русская сборка x64.",
+      "winget": "Mozilla.Firefox.ru",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "nullsoft",
+      "sources": [
+        {
+          "kind": "redirect",
+          "url": "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=ru",
+          "versionFromFinalUrl": "/releases/([0-9.]+)/win64/ru/",
+          "observed": {
+            "final": "https://download-installer.cdn.mozilla.net/pub/firefox/releases/158.0.1/win64/ru/Firefox%20Setup%20158.0.1.exe",
+            "contentType": "application/x-msdos-program",
+            "size": 95380224
+          }
+        },
+        {
+          "kind": "redirect",
+          "id": "msi",
+          "url": "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=ru",
+          "observed": {
+            "final": "https://download-installer.cdn.mozilla.net/pub/firefox/releases/158.0.1/win64/ru/Firefox%20Setup%20158.0.1.msi",
+            "contentType": "application/x-msi",
+            "size": 95518720
+          }
+        }
+      ],
+      "silentArgs": "/S /PreventRebootRequired=true /DesktopShortcut=true /TaskbarShortcut=false",
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "displayNameRegex": "^Mozilla Firefox",
+        "publisherRegex": "^Mozilla",
+        "versionValue": "DisplayVersion"
+      },
+      "signerCn": [
+        "Mozilla Corporation"
+      ],
+      "region": {
+        "ru": "available"
+      },
+      "signerVerified": false
+    },
+    {
+      "id": "brave",
+      "title": "Brave",
+      "category": "Браузеры",
+      "description_ru": "Браузер Brave со встроенной блокировкой рекламы.",
+      "winget": "Brave.Brave",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "omaha-exe",
+      "sources": [
+        {
+          "kind": "github-latest-asset",
+          "url": "https://github.com/brave/brave-browser/releases/latest/download/BraveBrowserStandaloneSetup.exe",
+          "observed": {
+            "tag": "v1.98.60",
+            "contentType": "application/octet-stream",
+            "size": 168513376
+          }
+        },
+        {
+          "kind": "static",
+          "id": "online-stub",
+          "url": "https://laptop-updates.brave.com/latest/winx64",
+          "observed": {
+            "final": "https://referrals.brave.com/latest/BraveBrowserSetup.exe",
+            "contentType": "application/x-msdownload",
+            "size": 1277280,
+            "note": "онлайн-загрузчик"
+          }
+        }
+      ],
+      "silentArgs": "/silent /install",
+      "userScopeAlternative": "BraveBrowserStandaloneSilentSetup.exe (без аргументов, per-user, запускать без повышения)",
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "keyNames": [
+          "BraveSoftware Brave-Browser"
+        ],
+        "versionValue": "DisplayVersion"
+      },
+      "signerCn": [
+        "Brave Software, Inc."
+      ],
+      "region": {
+        "ru": "unknown",
+        "note_ru": "Основной офлайн-источник — GitHub (release-assets.githubusercontent.com), в РФ бывают сбои."
+      },
+      "signerVerified": false
+    },
+    {
+      "id": "operagx",
+      "title": "Opera GX",
+      "category": "Браузеры",
+      "description_ru": "Игровой браузер Opera GX.",
+      "winget": "Opera.OperaGX",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "opera-exe",
+      "sources": [
+        {
+          "kind": "static",
+          "id": "online-stub",
+          "url": "https://net.geo.opera.com/opera_gx/stable/windows",
+          "observed": {
+            "contentType": "application/octet-stream",
+            "size": 4163560,
+            "contentDisposition": "OperaGXSetup.exe"
+          }
+        },
+        {
+          "kind": "winget-url",
+          "url": "https://get.geo.opera.com/pub/opera_gx/{version}/win/Opera_GX_{version}_Setup_x64.exe",
+          "note": "НЕ ПРОВЕРЕНО: get.geo.opera.com заблокирован DNS-фильтром AdGuard на машине разработчика"
+        }
+      ],
+      "silentArgs": "/silent /allusers=1 /launchopera=0 /setdefaultbrowser=0",
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "displayNameRegex": "^Opera GX",
+        "publisherRegex": "^Opera",
+        "note": "имя ключа НЕ ПРОВЕРЕНО"
+      },
+      "signerCn": [
+        "Opera Norway AS"
+      ],
+      "region": {
+        "ru": "unknown"
+      },
+      "signerVerified": false
+    },
+    {
+      "id": "opera",
+      "title": "Opera",
+      "category": "Браузеры",
+      "description_ru": "Браузер Opera.",
+      "winget": "Opera.Opera",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "opera-exe",
+      "sources": [
+        {
+          "kind": "static",
+          "id": "online-stub",
+          "url": "https://net.geo.opera.com/opera/stable/windows",
+          "observed": {
+            "contentType": "application/octet-stream",
+            "size": 3278168,
+            "contentDisposition": "OperaSetup.exe"
+          }
+        },
+        {
+          "kind": "winget-url",
+          "url": "https://get.geo.opera.com/pub/opera/desktop/{version}/win/Opera_{version}_Setup_x64.exe",
+          "note": "НЕ ПРОВЕРЕНО (см. Opera GX)"
+        }
+      ],
+      "silentArgs": "/silent /allusers=1 /launchopera=0 /setdefaultbrowser=0",
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "displayNameRegex": "^Opera (Stable|\\d)",
+        "publisherRegex": "^Opera",
+        "note": "имя ключа НЕ ПРОВЕРЕНО"
+      },
+      "signerCn": [
+        "Opera Norway AS"
+      ],
+      "region": {
+        "ru": "unknown"
+      },
+      "signerVerified": false
+    },
+    {
+      "id": "yandex",
+      "title": "Яндекс Браузер",
+      "category": "Браузеры",
+      "description_ru": "Браузер Яндекса (популярен в РФ). Полный офлайн-установщик.",
+      "winget": "Yandex.Browser",
+      "scope": "user",
+      "launch": "unelevated",
+      "installerType": "chromium-exe",
+      "sources": [
+        {
+          "kind": "redirect",
+          "url": "https://browser.yandex.ru/download?os=win&bitness=64&full=1",
+          "versionFromFinalUrl": "/browser/yandex/(\\d+_\\d+_\\d+_\\d+)_\\d+/ru/Yandex\\.exe",
+          "observed": {
+            "final": "https://cdn.browser.yandex.net/browser/yandex/26_10_0_1854_119369/ru/Yandex.exe?…(трекинговые параметры)… -> cloudcdn-*.cdn.yandex.net",
+            "contentType": "application/octet-stream",
+            "size": 215095504,
+            "lastModified": "2026-10-22"
+          }
+        },
+        {
+          "kind": "template",
+          "url": "https://download.cdn.yandex.net/browser/yandex/{build}/ru/Yandex.exe",
+          "note": "без трекинга, проверено 200 для build=26_10_0_1854_119369"
+        }
+      ],
+      "silentArgs": "--silent --do-not-launch-browser",
+      "successCodes": [
+        0,
+        1,
+        3
+      ],
+      "detect": {
+        "keyNames": [
+          "YandexBrowser"
+        ],
+        "hive": "HKLM32 или HKCU",
+        "versionValue": "DisplayVersion",
+        "note": "на машине разработчика: HKLM\\SOFTWARE\\WOW6432Node\\...\\YandexBrowser, DisplayName 'Yandex (All Users)', 26.8.5.811"
+      },
+      "signerCn": [
+        "YANDEX LLC"
+      ],
+      "region": {
+        "ru": "available"
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "vivaldi",
+      "title": "Vivaldi",
+      "category": "Браузеры",
+      "description_ru": "Гибко настраиваемый браузер Vivaldi.",
+      "winget": "Vivaldi.Vivaldi",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "chromium-exe",
+      "sources": [
+        {
+          "kind": "appcast",
+          "url": "https://update.vivaldi.com/update/1.0/public/appcast.x64.xml",
+          "xpath": "rss/channel/item/enclosure/@url (+ @sparkle:version)",
+          "observed": {
+            "version": "8.2.4133.94",
+            "enclosure": "https://downloads.vivaldi.com/stable-auto/Vivaldi.8.2.4133.94.x64.exe"
+          }
+        },
+        {
+          "kind": "template",
+          "url": "https://downloads.vivaldi.com/stable/Vivaldi.{version}.x64.exe",
+          "observed": {
+            "contentType": "application/octet-stream",
+            "size": 156217256,
+            "lastModified": "2026-10-23"
+          }
+        }
+      ],
+      "silentArgs": "--vivaldi-silent --do-not-launch-chrome --system-level",
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "keyNames": [
+          "Vivaldi"
+        ],
+        "versionValue": "DisplayVersion"
+      },
+      "signerCn": [
+        "Vivaldi Technologies AS"
+      ],
+      "region": {
+        "ru": "unknown"
+      },
+      "signerVerified": false
+    },
+    {
+      "id": "edge",
+      "title": "Microsoft Edge",
+      "category": "Браузеры",
+      "description_ru": "Обычно уже установлен в Windows 10/11. Пункт нужен только для восстановления.",
+      "winget": "Microsoft.Edge",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "msi",
+      "sources": [
+        {
+          "kind": "json-api",
+          "url": "https://edgeupdates.microsoft.com/api/products?view=enterprise",
+          "select": "Product=='Stable' → Releases[Platform=='Windows' && Architecture=='x64'] max(ReleaseId) → Artifacts[ArtifactName=='msi'] {Location, Hash(SHA256), SizeInBytes}; ProductVersion",
+          "observed": {
+            "version": "156.0.4314.42",
+            "size": 215257088,
+            "sha256": "324D226C5ADE08C2776645CFC2A7B12AF9C08214ABF18C6499410CD8ED92D1B3"
+          }
+        }
+      ],
+      "silentArgs": "msiexec /i \"<file>\" /qn /norestart",
+      "successCodes": [
+        0,
+        1641,
+        3010
+      ],
+      "detect": {
+        "hive": "HKLM32",
+        "keyNames": [
+          "Microsoft Edge"
+        ],
+        "versionValue": "DisplayVersion"
+      },
+      "signerCn": [
+        "Microsoft Corporation"
+      ],
+      "region": {
+        "ru": "available"
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "7zip",
+      "title": "7-Zip",
+      "category": "Утилиты",
+      "description_ru": "Бесплатный архиватор.",
+      "winget": "7zip.7zip",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "nullsoft-exe",
+      "sources": [
+        {
+          "kind": "github-release",
+          "repo": "ip7z/7zip",
+          "asset": "7z{vvvv}-x64.exe",
+          "useDigest": true,
+          "observed": {
+            "tag": "26.05",
+            "asset": "7z2605-x64.exe",
+            "size": 1663506,
+            "sha256": "fd99e86f57d8f429ef5ed045bf98315af962e2309b0f1ba87a147a44c71647d0"
+          }
+        },
+        {
+          "kind": "html-regex",
+          "url": "https://www.7-zip.org/",
+          "regex": "href=\"(https://github\\.com/ip7z/7zip/releases/download/([0-9.]+)/7z\\d+-x64\\.exe)\"",
+          "note": "НЕ парсить download.html — там первой стоит 23.01. www.7-zip.org/a/*.exe теперь 302 → GitHub"
+        }
+      ],
+      "silentArgs": "/S",
+      "msiAlternative": {
+        "asset": "7z{vvvv}-x64.msi",
+        "args": "msiexec /i \"<file>\" /qn",
+        "sha256_26.05": "3fe4ab99fa15629c652944309a2b2bc6e41fc933fc6b63f5df1ebcf3aea68263",
+        "upgradeCode": "{23170F69-40C1-2702-0000-000004000000}"
+      },
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "hive": "HKLM64",
+        "keyNames": [
+          "7-Zip"
+        ],
+        "versionValue": "DisplayVersion",
+        "quietUninstall": "\"C:\\Program Files\\7-Zip\\Uninstall.exe\" /S"
+      },
+      "signerCn": [],
+      "signerNote": "7-Zip НЕ подписан Authenticode — проверять только SHA-256",
+      "region": {
+        "ru": "github",
+        "note_ru": "Все загрузки 7-Zip идут через GitHub."
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "obs",
+      "title": "OBS Studio",
+      "category": "Стриминг и запись",
+      "description_ru": "Запись и стриминг экрана.",
+      "winget": "OBSProject.OBSStudio",
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "nullsoft",
+      "sources": [
+        {
+          "kind": "github-release",
+          "repo": "obsproject/obs-studio",
+          "asset": "OBS-Studio-{version}-Windows-x64-Installer.exe",
+          "useDigest": true,
+          "observed": {
+            "tag": "33.0.0",
+            "size": 186671888,
+            "sha256": "3bf55dae6d9db651505828090de74540296c742ed2a94a28cf055cb6ddc6bed3"
+          }
+        }
+      ],
+      "silentArgs": "/S",
+      "successCodes": [
+        0
+      ],
+      "errorCodes": {
+        "6": "OBS запущен — закройте OBS"
+      },
+      "detect": {
+        "hive": "HKLM32",
+        "keyNames": [
+          "OBS Studio"
+        ],
+        "versionValue": "DisplayVersion",
+        "quietUninstall": "\"C:\\Program Files\\obs-studio\\uninstall.exe\" /S"
+      },
+      "signerCn": [
+        "OBS Project, LLC"
+      ],
+      "region": {
+        "ru": "github"
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "telegram",
+      "title": "Telegram Desktop",
+      "category": "Общение",
+      "description_ru": "Официальный клиент Telegram для ПК.",
+      "winget": "Telegram.TelegramDesktop",
+      "scope": "user",
+      "launch": "unelevated",
+      "installerType": "inno",
+      "sources": [
+        {
+          "kind": "redirect",
+          "url": "https://telegram.org/dl/desktop/win64",
+          "versionFromFinalUrl": "td-setup-win-x64-([0-9.]+)\\.exe$",
+          "observed": {
+            "final": "https://td.telegram.org/win-x64/td-setup-win-x64-7.3.3.exe",
+            "contentType": "application/octet-stream",
+            "size": 63102944,
+            "lastModified": "2026-10-21"
+          }
+        },
+        {
+          "kind": "github-release",
+          "repo": "telegramdesktop/tdesktop",
+          "asset": "td-setup-win-x64-{version}.exe",
+          "useDigest": true,
+          "observed": {
+            "tag": "v7.3.3",
+            "sha256": "865cd80080ef1948bd818000c05fe81cabbbd0688a91c2cf8978f9cc73fd5a06"
+          },
+          "note": "Имя ассета сменилось: раньше tsetup-x64.X.exe"
+        }
+      ],
+      "silentArgs": "/VERYSILENT /NORESTART",
+      "successCodes": [
+        0
+      ],
+      "detect": {
+        "hive": "HKCU",
+        "keyNames": [
+          "{53F49750-6209-4FBF-9CA8-7A333C87D1ED}_is1"
+        ],
+        "versionValue": "DisplayVersion"
+      },
+      "signerCn": [
+        "Telegram FZ-LLC"
+      ],
+      "region": {
+        "ru": "restricted",
+        "note_ru": "С 10.02.2026 РКН ограничивает работу Telegram (задержки, звонки). Доступность telegram.org для скачивания НЕ ПРОВЕРЕНА; есть зеркало на GitHub."
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "spotify",
+      "title": "Spotify",
+      "category": "Музыка",
+      "description_ru": "Музыкальный сервис. В РФ сервис официально не работает.",
+      "winget": "Spotify.Spotify",
+      "scope": "user",
+      "launch": "unelevated-required",
+      "installerType": "exe",
+      "sources": [
+        {
+          "kind": "static",
+          "url": "https://download.scdn.co/SpotifyFullSetupX64.exe",
+          "observed": {
+            "contentType": "application/octet-stream",
+            "size": 157180192,
+            "lastModified": "2026-10-21"
+          }
+        },
+        {
+          "kind": "static",
+          "id": "online-stub",
+          "url": "https://download.scdn.co/SpotifySetup.exe",
+          "observed": {
+            "size": 1075688
+          }
+        }
+      ],
+      "doNotUse": [
+        "https://download.scdn.co/SpotifyFullSetup.exe (старый x86 от 2026-02-22)"
+      ],
+      "silentArgs": "/silent /skip-app-launch",
+      "successCodes": [
+        0
+      ],
+      "errorCodes": {
+        "26": "Spotify запущен — закройте его"
+      },
+      "elevationNote": "winget: ElevationRequirement=elevationProhibited — установщик НЕ запускать с правами администратора",
+      "detect": {
+        "hive": "HKCU",
+        "keyNames": [
+          "Spotify"
+        ],
+        "versionValue": "DisplayVersion",
+        "quietUninstall": "\"%AppData%\\Spotify\\uninstall.exe\" /silent"
+      },
+      "signerCn": [
+        "Spotify AB"
+      ],
+      "region": {
+        "ru": "service-unavailable",
+        "note_ru": "Spotify ушёл из РФ в 2022: приложение установится, но без VPN/иностранного аккаунта работать не будет."
+      },
+      "signerVerified": true
+    },
+    {
+      "id": "nvidia-app",
+      "title": "NVIDIA App",
+      "category": "Драйверы",
+      "description_ru": "Фирменное приложение NVIDIA (драйверы, запись, настройки). Опционально.",
+      "winget": null,
+      "scope": "machine",
+      "launch": "elevated",
+      "installerType": "nvidia-exe",
+      "sources": [
+        {
+          "kind": "html-regex",
+          "url": "https://www.nvidia.com/en-us/software/nvidia-app/",
+          "regex": "https://us\\.download\\.nvidia\\.com/nvapp/client/(\\d+(?:\\.\\d+){3})/NVIDIA_app_v\\1\\.exe",
+          "observed": {
+            "version": "11.0.9.565",
+            "url": "https://us.download.nvidia.com/nvapp/client/11.0.9.565/NVIDIA_app_v11.0.9.565.exe",
+            "size": 184718920,
+            "lastModified": "2026-10-07"
+          }
+        },
+        {
+          "kind": "template",
+          "url": "https://uk.download.nvidia.com/nvapp/client/{version}/NVIDIA_app_v{version}.exe",
+          "note": "зеркало, проверено 200"
+        }
+      ],
+      "silentArgs": null,
+      "silentNote": "Тихая установка НЕ ПРОВЕРЕНА (часто пишут '-s'). Запускать интерактивно.",
+      "detect": {
+        "keyNameRegex": "^\\{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8\\}_Display\\.NvApp$",
+        "note": "паттерн '_display.nvapp' взят из исходников DDU; на машине разработчика NVIDIA App не установлен — НЕ ПРОВЕРЕНО"
+      },
+      "signerCn": [
+        "NVIDIA Corporation"
+      ],
+      "region": {
+        "ru": "geo-risk",
+        "note_ru": "В октябре 2024 NVIDIA блокировала загрузку драйверов из РФ (Access Forbidden). Текущий статус НЕ ПРОВЕРЕН."
+      },
+      "signerVerified": true
+    }
+  ]
+}

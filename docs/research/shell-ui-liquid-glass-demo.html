@@ -1,0 +1,416 @@
+<!doctype html>
+<!--
+  hateeze — эталон «liquid glass» для WebView2/Chromium (референс для разработчиков UI).
+  Самодостаточный файл: без CDN, без внешних шрифтов. Открывать в Edge/Chrome ≥ 120 или в WebView2.
+  Лицензия этого файла: код написан для проекта hateeze. Функция buildLensMap() — адаптация идеи
+  из shuding/liquid-glass (MIT, (c) 2025 Shu Ding, https://github.com/shuding/liquid-glass) —
+  при переносе в продукт сохранить эту строку атрибуции в THIRD-PARTY-NOTICES.
+-->
+<html lang="ru" data-fx="full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hateeze — liquid glass reference</title>
+<style>
+/* ===================== 1. Токены ===================== */
+:root {
+  color-scheme: dark;
+  --font-ui: "Inter Variable", "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+
+  --bg-0: #06070b;            /* базовый фон окна (совпадает с Form.BackColor и DefaultBackgroundColor) */
+  --text-1: rgb(255 255 255 / .94);
+  --text-2: rgb(255 255 255 / .68);
+  --text-3: rgb(255 255 255 / .46);
+
+  --accent: #7c6cff;          /* фирменный фиолетовый */
+  --accent-2: #33d1ff;        /* холодный акцент */
+  --ok: #3ddc97; --warn: #ffb547; --danger: #ff5c7a; --exp: #b78cff;
+
+  --glass-tint-top: rgb(255 255 255 / .10);
+  --glass-tint-bot: rgb(255 255 255 / .035);
+  --glass-blur: 18px;
+  --glass-sat: 170%;
+  --glass-bright: 1.04;
+  --rim-hi: rgb(255 255 255 / .55);
+  --rim-lo: rgb(255 255 255 / .06);
+
+  --r-xl: 24px; --r-lg: 18px; --r-md: 12px; --r-sm: 8px; --r-pill: 999px;
+  --dur-fast: 120ms; --dur: 220ms; --ease: cubic-bezier(.2,.8,.2,1);
+  --titlebar-h: 40px;
+}
+
+/* ===================== 2. База ===================== */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg-0);
+  color: var(--text-1);
+  font: 14px/1.45 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;              /* окно приложения: скроллят внутренние области */
+  user-select: none;             /* приложение, не документ; для текста — .selectable */
+}
+.selectable { user-select: text; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ===================== 3. Живой фон (то, что «читает» стекло) ===================== */
+.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+  background:
+    radial-gradient(1100px 700px at 8% -12%, #1a1342 0%, transparent 60%),
+    radial-gradient(900px 700px at 110% 115%, #082a3a 0%, transparent 60%),
+    var(--bg-0);
+}
+/* Блобы — радиальные градиенты БЕЗ filter:blur (дешевле), анимируется только transform. */
+.blob { position: absolute; width: 52vmax; aspect-ratio: 1; border-radius: 50%; opacity: .75;
+  will-change: transform; animation: drift var(--t, 32s) ease-in-out infinite alternate; }
+.b1 { left: -14vmax; top: -18vmax; --t: 34s; background: radial-gradient(circle, rgb(124 108 255 / .55) 0%, rgb(124 108 255 / 0) 62%); }
+.b2 { right: -18vmax; top: 10vmax; --t: 41s; background: radial-gradient(circle, rgb(51 209 255 / .38) 0%, rgb(51 209 255 / 0) 60%); animation-direction: alternate-reverse; }
+.b3 { left: 18vmax; bottom: -26vmax; --t: 47s; background: radial-gradient(circle, rgb(255 92 168 / .30) 0%, rgb(255 92 168 / 0) 60%); }
+@keyframes drift {
+  0%   { transform: translate3d(0,0,0) scale(1); }
+  100% { transform: translate3d(10vmax, 6vmax, 0) scale(1.18); }
+}
+/* Зерно: статичная альфа-текстура (без blend-mode) — почти бесплатно. */
+.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .05;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.4 -0.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ===================== 4. Стеклянный материал ===================== */
+.glass {
+  position: relative; isolation: isolate;               /* свой stacking context для псевдо-слоёв */
+  border-radius: var(--r, var(--r-xl));
+  background: linear-gradient(180deg, var(--glass-tint-top), var(--glass-tint-bot));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) brightness(var(--glass-bright));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / .16),               /* верхний внутренний блик */
+    inset 0 -1px 0 rgb(255 255 255 / .03),
+    0 1px 2px rgb(0 0 0 / .30),
+    0 22px 48px -18px rgb(0 0 0 / .65);                 /* «подъём» над фоном */
+}
+/* Specular rim: градиентная 1px-рамка через mask-composite (Chromium ≥ 120 — без префикса). */
+.glass::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(135deg, var(--rim-hi) 0%, var(--rim-lo) 28%, rgb(255 255 255 / 0) 52%, rgb(255 255 255 / .10) 78%, rgb(255 255 255 / .32) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+/* Блик, следующий за курсором (CSS-переменные --mx/--my ставит JS только при hover). */
+.glass::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(420px circle at var(--mx, 20%) var(--my, -30%), rgb(255 255 255 / .09), transparent 46%);
+  transition: opacity var(--dur) var(--ease);
+}
+.glass.subtle { --glass-tint-top: rgb(255 255 255 / .06); --glass-tint-bot: rgb(255 255 255 / .02); }
+.glass.strong { --glass-blur: 26px; --glass-tint-top: rgb(255 255 255 / .14); }
+
+/* ===================== 5. Каркас окна ===================== */
+.app { position: relative; z-index: 2; height: 100%; display: grid;
+  grid-template-rows: var(--titlebar-h) 1fr; grid-template-columns: 232px 1fr; gap: 0 14px; padding: 0 14px 14px; }
+
+.titlebar { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding-left: 4px;
+  app-region: drag; -webkit-app-region: drag; }               /* перетаскивание окна (WebView2: IsNonClientRegionSupportEnabled) */
+.titlebar .logo { font: 800 15px/1 var(--font-ui); letter-spacing: .08em; text-transform: lowercase;
+  background: linear-gradient(90deg, #fff, #c9c1ff 40%, var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.titlebar .spacer { flex: 1; }
+.winbtns { display: flex; app-region: no-drag; -webkit-app-region: no-drag; }
+.winbtn { width: 46px; height: var(--titlebar-h); display: grid; place-items: center; border: 0; background: transparent; color: var(--text-2);
+  transition: background var(--dur-fast), color var(--dur-fast); }
+.winbtn:hover { background: rgb(255 255 255 / .08); color: var(--text-1); }
+.winbtn.close:hover { background: #c42b1c; color: #fff; }
+.winbtn svg { width: 10px; height: 10px; }
+
+/* ===================== 6. Навигация ===================== */
+.nav { --r: var(--r-xl); padding: 10px; display: flex; flex-direction: column; gap: 2px; overflow: auto; }
+.nav h6 { margin: 12px 10px 6px; font: 600 11px/1 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+.nav a { position: relative; display: flex; align-items: center; gap: 10px; height: 36px; padding: 0 10px; border-radius: var(--r-md);
+  color: var(--text-2); text-decoration: none; transition: background var(--dur-fast), color var(--dur-fast); }
+.nav a:hover { background: rgb(255 255 255 / .06); color: var(--text-1); }
+.nav a[aria-current="page"] { color: var(--text-1); background: rgb(124 108 255 / .18); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .10); }
+.nav a svg { width: 18px; height: 18px; flex: none; opacity: .9; }
+
+/* ===================== 7. Контент ===================== */
+.main { overflow: auto; display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; align-content: start; padding-right: 2px; }
+.card { --r: var(--r-xl); padding: 18px; }
+.span-4 { grid-column: span 4; } .span-6 { grid-column: span 6; } .span-8 { grid-column: span 8; } .span-12 { grid-column: span 12; }
+.card h3 { margin: 0 0 4px; font: 600 15px/1.2 var(--font-ui); }
+.card p { margin: 0; color: var(--text-2); }
+.kpi { font: 600 30px/1 var(--font-mono); letter-spacing: -.02em; margin-top: 12px; }
+.kpi small { font: 500 13px var(--font-ui); color: var(--text-3); margin-left: 6px; }
+canvas.spark { display: block; width: 100%; height: 56px; margin-top: 10px; }
+
+/* Таблица: стекло ТОЛЬКО на панели-контейнере, строки — простые полупрозрачные (без backdrop-filter!) */
+table { width: 100%; border-collapse: separate; border-spacing: 0 6px; margin-top: 10px; }
+th { text-align: left; font: 600 11px/1 var(--font-ui); letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); padding: 0 12px 4px; }
+td { padding: 10px 12px; background: rgb(255 255 255 / .035); vertical-align: middle; }
+tr td:first-child { border-radius: var(--r-md) 0 0 var(--r-md); }
+tr td:last-child  { border-radius: 0 var(--r-md) var(--r-md) 0; }
+tbody tr:hover td { background: rgb(255 255 255 / .06); }
+td .desc { color: var(--text-3); font-size: 12.5px; }
+
+/* Бейджи доказательности */
+.badge { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 9px; border-radius: var(--r-pill);
+  font: 600 11.5px/1 var(--font-ui); white-space: nowrap; background: rgb(255 255 255 / .06); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .10); }
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+.badge.proven { color: var(--ok); } .badge.situational { color: var(--warn); } .badge.experimental { color: var(--exp); }
+
+/* Переключатель */
+.switch { position: relative; width: 44px; height: 26px; flex: none; appearance: none; margin: 0; border-radius: var(--r-pill); cursor: pointer;
+  background: rgb(255 255 255 / .10); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .12), inset 0 1px 2px rgb(0 0 0 / .35);
+  transition: background var(--dur) var(--ease); }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: linear-gradient(180deg, #fff, #dcdcf0); box-shadow: 0 2px 6px rgb(0 0 0 / .45), inset 0 -1px 1px rgb(0 0 0 / .12);
+  transition: transform var(--dur) var(--ease); }
+.switch:checked { background: linear-gradient(90deg, var(--accent), #9a8bff); }
+.switch:checked::after { transform: translateX(18px); }
+.switch:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+/* Слайдер */
+.range { width: 100%; appearance: none; height: 26px; background: transparent; margin: 0; --p: 50%; }
+.range::-webkit-slider-runnable-track { height: 6px; border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--accent) 0 var(--p), rgb(255 255 255 / .12) var(--p) 100%); box-shadow: inset 0 1px 2px rgb(0 0 0 / .4); }
+.range::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; margin-top: -7px; border-radius: 50%;
+  background: linear-gradient(180deg, #fff, #dcdcf0); box-shadow: 0 2px 8px rgb(0 0 0 / .5), 0 0 0 4px rgb(124 108 255 / .25); }
+
+/* Кнопки */
+.btn { height: 36px; padding: 0 16px; border: 0; border-radius: var(--r-pill); cursor: pointer; color: var(--text-1);
+  font: 600 13px/1 var(--font-ui); background: rgb(255 255 255 / .08); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .12);
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast); }
+.btn:hover { background: rgb(255 255 255 / .12); }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: linear-gradient(180deg, #8b7dff, #6a58f2); box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), 0 8px 22px -8px rgb(124 108 255 / .8); }
+.btn.danger { background: rgb(255 92 122 / .16); color: #ffc2cd; box-shadow: inset 0 0 0 1px rgb(255 92 122 / .35); }
+.row { display: flex; align-items: center; gap: 12px; }
+.row + .row { margin-top: 12px; }
+.grow { flex: 1; }
+
+/* ===================== 8. «Жидкая линза» (рефракция, только Chromium) ===================== */
+.lens-wrap { position: relative; height: 150px; margin-top: 12px; border-radius: var(--r-lg); overflow: hidden;
+  background: repeating-linear-gradient(90deg, rgb(255 255 255 / .9) 0 2px, transparent 2px 22px),
+              linear-gradient(120deg, #3b2c9e, #0f6b8a 55%, #8a2d6b); }
+.lens { position: absolute; left: 40px; top: 35px; width: 260px; height: 80px; border-radius: var(--r-pill);
+  display: grid; place-items: center; font-weight: 700; color: #fff; text-shadow: 0 1px 8px rgb(0 0 0 / .45);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .45), inset 0 -10px 25px rgb(0 0 0 / .15), 0 10px 30px -8px rgb(0 0 0 / .6);
+  background: rgb(255 255 255 / .06); cursor: grab; touch-action: none; }
+/* backdrop-filter для .lens задаёт JS (url(#id) + blur) — см. attachLiquidLens() */
+
+/* ===================== 9. Режимы производительности/доступности ===================== */
+html[data-fx="low"] .glass,
+html[data-fx="low"] .lens { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html[data-fx="low"] .glass { background: rgb(22 24 34 / .92); }
+html[data-fx="low"] .blob,
+html[data-paused] .blob { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .blob { animation: none; }
+  *, *::before, *::after { transition-duration: 1ms !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(22 24 34 / .95); }
+}
+@media (prefers-contrast: more) {
+  .glass::before { background: rgb(255 255 255 / .6); }
+  :root { --text-2: rgb(255 255 255 / .85); --text-3: rgb(255 255 255 / .7); }
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="app">
+  <header class="titlebar">
+    <span class="logo">hateeze</span><span style="color:var(--text-3);font-size:12px">v0.1 · эталон стекла</span>
+    <span class="spacer"></span>
+    <div class="winbtns">
+      <button class="winbtn" title="Свернуть" data-win="minimize"><svg viewBox="0 0 10 10"><path d="M0 5h10" stroke="currentColor"/></svg></button>
+      <button class="winbtn" title="Развернуть" data-win="maximize"><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" fill="none" stroke="currentColor"/></svg></button>
+      <button class="winbtn close" title="Закрыть" data-win="close"><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" stroke="currentColor"/></svg></button>
+    </div>
+  </header>
+
+  <nav class="nav glass subtle">
+    <h6>Обзор</h6>
+    <a href="#" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>Мониторинг</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Задержки</a>
+    <h6>Твики</h6>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></svg>Процессор</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Видеокарта</a>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v8L8 8M14 2v8l2-2"/><path d="M12 22a8 8 0 0 0 8-8H4a8 8 0 0 0 8 8Z"/></svg>Эксперимент</a>
+    <h6>Система</h6>
+    <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Откат</a>
+  </nav>
+
+  <main class="main">
+    <section class="card glass span-4" data-sheen>
+      <h3>Время кадра</h3><p>PresentMon, последние 60 с</p>
+      <div class="kpi mono" id="kpi-ft">6.94<small>мс</small></div>
+      <canvas class="spark" id="spark-ft"></canvas>
+    </section>
+    <section class="card glass span-4" data-sheen>
+      <h3>Загрузка ЦП</h3><p>Ryzen 7 5700X · 16 потоков</p>
+      <div class="kpi mono" id="kpi-cpu">23<small>%</small></div>
+      <canvas class="spark" id="spark-cpu"></canvas>
+    </section>
+    <section class="card glass span-4" data-sheen>
+      <h3>DPC / ISR</h3><p>максимум за окно</p>
+      <div class="kpi mono" id="kpi-dpc">118<small>мкс</small></div>
+      <canvas class="spark" id="spark-dpc"></canvas>
+    </section>
+
+    <section class="card glass span-8" data-sheen>
+      <div class="row"><h3 class="grow">Рекомендуемые твики</h3><button class="btn">Снимок системы</button><button class="btn primary">Применить выбранные</button></div>
+      <table>
+        <thead><tr><th>Твик</th><th>Доказательность</th><th style="width:60px">Вкл.</th></tr></thead>
+        <tbody>
+          <tr><td>Схема питания «Максимальная производительность»<div class="desc">Отключает парковку ядер и снижает задержку выхода из простоя.</div></td><td><span class="badge proven">Проверено</span></td><td><input type="checkbox" class="switch" checked></td></tr>
+          <tr><td>Аппаратное ускорение планирования GPU<div class="desc">Помогает при упоре в ЦП и для Frame Generation.</div></td><td><span class="badge situational">Ситуативно</span></td><td><input type="checkbox" class="switch"></td></tr>
+          <tr><td>Отключение динамического тика<div class="desc">Эффект спорный, измеряйте LatencyMon до/после.</div></td><td><span class="badge experimental">Эксперимент</span></td><td><input type="checkbox" class="switch"></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card glass span-4" data-sheen>
+      <h3>Эффекты интерфейса</h3><p>Стекло дорого для слабых GPU — можно упростить.</p>
+      <div class="row" style="margin-top:14px"><span class="grow">Полные эффекты стекла</span><input type="checkbox" class="switch" id="fx" checked></div>
+      <div class="row"><span class="grow">Интенсивность размытия</span><span class="mono" id="blurv">18 px</span></div>
+      <input type="range" class="range" id="blur" min="0" max="40" value="18">
+      <div class="row" style="margin-top:14px"><button class="btn danger grow">Откатить всё и перезагрузить</button></div>
+      <p style="margin-top:10px;font-size:12px;color:var(--text-3)">Горячая клавиша: <span class="mono">Ctrl+Alt+Shift+R</span> (дважды за 3 с)</p>
+    </section>
+
+    <section class="card glass span-12" data-sheen>
+      <h3>Жидкая линза (только Chromium/WebView2)</h3>
+      <p>backdrop-filter: url(#svg-filter) — смещение фона по карте, сгенерированной из SDF скруглённого прямоугольника. Перетащите линзу.</p>
+      <div class="lens-wrap" id="lens-wrap"><div class="lens" id="lens">Применить</div></div>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* ---------- 1. Блик за курсором: обновляем CSS-переменные только у элемента под курсором ---------- */
+document.querySelectorAll("[data-sheen]").forEach(el => {
+  el.addEventListener("pointermove", e => {
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    el.style.setProperty("--my", `${e.clientY - r.top}px`);
+  }, { passive: true });
+  el.addEventListener("pointerleave", () => { el.style.removeProperty("--mx"); el.style.removeProperty("--my"); });
+});
+
+/* ---------- 2. Переключатель эффектов + слайдер размытия ---------- */
+const root = document.documentElement;
+document.getElementById("fx").addEventListener("change", e => root.dataset.fx = e.target.checked ? "full" : "low");
+const blur = document.getElementById("blur");
+const syncBlur = () => { root.style.setProperty("--glass-blur", blur.value + "px"); blur.style.setProperty("--p", (blur.value / blur.max * 100) + "%");
+  document.getElementById("blurv").textContent = blur.value + " px"; };
+blur.addEventListener("input", syncBlur); syncBlur();
+
+/* ---------- 3. Пауза анимаций, когда окно скрыто/без фокуса (в продукте — ещё и сигнал от хоста) ---------- */
+const syncPause = () => { if (document.hidden || !document.hasFocus()) root.setAttribute("data-paused", ""); else root.removeAttribute("data-paused"); };
+document.addEventListener("visibilitychange", syncPause); window.addEventListener("blur", syncPause); window.addEventListener("focus", syncPause); syncPause();
+
+/* ---------- 4. Спарклайны на canvas (для карточек; большие графики — uPlot) ---------- */
+function sparkline(canvas, color) {
+  const N = 120, data = new Float32Array(N); let head = 0, filled = 0;
+  const ctx = canvas.getContext("2d");
+  // ВАЖНО: смена canvas.width/height очищает холст — после resize обязательно перерисовать
+  // (баг найден при проверке в Chromium 152: без draw() спарклайны были пустыми).
+  function resize() { const dpr = devicePixelRatio || 1; canvas.width = Math.round(canvas.clientWidth * dpr); canvas.height = Math.round(canvas.clientHeight * dpr); draw(); }
+  new ResizeObserver(resize).observe(canvas);
+  function draw() {
+      const w = canvas.width, h = canvas.height; ctx.clearRect(0, 0, w, h); if (filled < 2) return;
+      let min = Infinity, max = -Infinity; for (let i = 0; i < filled; i++) { const v = data[i]; if (v < min) min = v; if (v > max) max = v; }
+      const pad = (max - min) * .15 || 1; min -= pad; max += pad;
+      ctx.beginPath();
+      for (let i = 0; i < filled; i++) { const v = data[(head - filled + i + N) % N]; const x = i / (N - 1) * w; const y = h - (v - min) / (max - min) * h; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+      ctx.lineWidth = 1.5 * (devicePixelRatio || 1); ctx.strokeStyle = color; ctx.lineJoin = "round"; ctx.stroke();
+      ctx.lineTo((filled - 1) / (N - 1) * w, h); ctx.lineTo(0, h); ctx.closePath();
+      const g = ctx.createLinearGradient(0, 0, 0, h); g.addColorStop(0, color + "55"); g.addColorStop(1, color + "00"); ctx.fillStyle = g; ctx.fill();
+  }
+  resize();
+  return { push(v) { data[head] = v; head = (head + 1) % N; filled = Math.min(filled + 1, N); draw(); } };
+}
+const sFt = sparkline(document.getElementById("spark-ft"), "#7c6cff");
+const sCpu = sparkline(document.getElementById("spark-cpu"), "#33d1ff");
+const sDpc = sparkline(document.getElementById("spark-dpc"), "#3ddc97");
+let t = 0;
+setInterval(() => {               // демо-поток 4 Гц; в продукте — события моста metrics.sample
+  if (root.hasAttribute("data-paused")) return;
+  t++;
+  const ft = 6.9 + Math.sin(t / 5) * .4 + (Math.random() < .05 ? 4 : 0) + Math.random() * .3;
+  const cpu = 22 + Math.sin(t / 9) * 6 + Math.random() * 4;
+  const dpc = 90 + Math.random() * 40 + (Math.random() < .03 ? 200 : 0);
+  sFt.push(ft); sCpu.push(cpu); sDpc.push(dpc);
+  document.getElementById("kpi-ft").firstChild.nodeValue = ft.toFixed(2);
+  document.getElementById("kpi-cpu").firstChild.nodeValue = Math.round(cpu);
+  document.getElementById("kpi-dpc").firstChild.nodeValue = Math.round(dpc);
+}, 250);
+
+/* ---------- 5. Жидкая линза: SVG feDisplacementMap в backdrop-filter (Chromium-only) ----------
+   Идея генерации карты смещения — shuding/liquid-glass (MIT). */
+function smoothStep(a, b, t) { t = Math.max(0, Math.min(1, (t - a) / (b - a))); return t * t * (3 - 2 * t); }
+function roundedRectSDF(x, y, w, h, r) { const qx = Math.abs(x) - w + r, qy = Math.abs(y) - h + r;
+  return Math.min(Math.max(qx, qy), 0) + Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) - r; }
+/** Строит карту смещения (data: URL) размером w×h CSS-px и возвращает {url, scale}. */
+function buildLensMap(w, h, { edge = 0.15 } = {}) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const ctx = c.getContext("2d"); const img = ctx.createImageData(w, h); const d = img.data;
+  const raw = new Float32Array(w * h * 2); let maxS = 0;
+  for (let y = 0, k = 0; y < h; y++) for (let x = 0; x < w; x++, k += 2) {
+    const ux = x / w - .5, uy = y / h - .5;
+    const dist = roundedRectSDF(ux, uy, .3, .2, .6);
+    const s = smoothStep(0, 1, smoothStep(.8, 0, dist - edge));   // 1 в центре, спадает к краю
+    const dx = (ux * s + .5) * w - x, dy = (uy * s + .5) * h - y;
+    raw[k] = dx; raw[k + 1] = dy; maxS = Math.max(maxS, Math.abs(dx), Math.abs(dy));
+  }
+  maxS = Math.max(maxS * .5, 1e-3);
+  for (let i = 0, k = 0; i < d.length; i += 4, k += 2) {
+    d[i] = (raw[k] / maxS + .5) * 255; d[i + 1] = (raw[k + 1] / maxS + .5) * 255; d[i + 2] = 0; d[i + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  return { url: c.toDataURL(), scale: maxS };
+}
+let lensSeq = 0;
+/** Подключает рефракцию к элементу; пересобирает карту при изменении размера. Возвращает dispose(). */
+function attachLiquidLens(el, { blurPx = 0.5, extra = "saturate(1.25) brightness(1.06)" } = {}) {
+  const id = "lg-lens-" + (++lensSeq), NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("width", "0"); svg.setAttribute("height", "0"); svg.setAttribute("aria-hidden", "true");
+  svg.style.cssText = "position:absolute;width:0;height:0;pointer-events:none";
+  svg.innerHTML = `<filter id="${id}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB" x="0" y="0">
+      <feImage result="map" preserveAspectRatio="none"/>
+      <feDisplacementMap in="SourceGraphic" in2="map" xChannelSelector="R" yChannelSelector="G"/></filter>`;
+  document.body.appendChild(svg);
+  const filter = svg.querySelector("filter"), feImage = svg.querySelector("feImage"), disp = svg.querySelector("feDisplacementMap");
+  let last = "";
+  const rebuild = () => {
+    const w = Math.max(1, Math.round(el.clientWidth)), h = Math.max(1, Math.round(el.clientHeight));
+    if (`${w}x${h}` === last) return; last = `${w}x${h}`;
+    const { url, scale } = buildLensMap(w, h);
+    for (const n of [filter, feImage]) { n.setAttribute("width", w); n.setAttribute("height", h); }
+    feImage.setAttribute("href", url); disp.setAttribute("scale", scale.toFixed(2));
+    el.style.backdropFilter = `url(#${id}) blur(${blurPx}px) ${extra}`;
+  };
+  const ro = new ResizeObserver(() => { clearTimeout(ro.t); ro.t = setTimeout(rebuild, 120); });
+  ro.observe(el); rebuild();
+  return () => { ro.disconnect(); svg.remove(); el.style.backdropFilter = ""; };
+}
+const lens = document.getElementById("lens");
+attachLiquidLens(lens);
+/* перетаскивание линзы внутри области */
+(() => { const wrap = document.getElementById("lens-wrap"); let sx, sy, ox, oy, drag = false;
+  lens.addEventListener("pointerdown", e => { drag = true; lens.setPointerCapture(e.pointerId); sx = e.clientX; sy = e.clientY; ox = lens.offsetLeft; oy = lens.offsetTop; });
+  lens.addEventListener("pointermove", e => { if (!drag) return; const W = wrap.clientWidth - lens.offsetWidth, H = wrap.clientHeight - lens.offsetHeight;
+    lens.style.left = Math.max(0, Math.min(W, ox + e.clientX - sx)) + "px"; lens.style.top = Math.max(0, Math.min(H, oy + e.clientY - sy)) + "px"; });
+  lens.addEventListener("pointerup", () => drag = false); })();
+
+/* ---------- 6. Кнопки окна → мост (в демо — просто лог) ---------- */
+document.querySelectorAll("[data-win]").forEach(b => b.addEventListener("click", () => {
+  const msg = { t: "req", id: Date.now(), m: "window." + b.dataset.win, p: {} };
+  if (window.chrome?.webview) window.chrome.webview.postMessage(msg); else console.log("bridge →", msg);
+}));
+</script>
+</body>
+</html>

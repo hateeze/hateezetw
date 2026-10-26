@@ -1,0 +1,831 @@
+[
+  {
+    "id": "nvidia.power-max-performance",
+    "category": "nvidia",
+    "title": "Питание GPU: максимальная производительность",
+    "description": "Ставит в глобальном профиле драйвера «Режим управления электропитанием» = «Предпочтителен режим максимальной производительности». GPU не сбрасывает частоты при неполной нагрузке, поэтому кадр не ждёт разгона частот.",
+    "recommendation": "Для игр: включить на ПК для киберспорта с высоким FPS, где GPU загружен не полностью. На ноутбуке — только при работе от сети.",
+    "evidence": "situational",
+    "evidenceNote": "NVIDIA (статья о платформе Reflex) прямо пишет, что режим удерживает высокие частоты и снижает задержку в CPU-ограниченных сценах ценой энергопотребления. Когда GPU загружен на ~100%, частоты и так максимальные, и эффекта нет. Независимых замеров с цифрами не найдено.",
+    "risk": "low",
+    "riskNote": "Выше потребление и нагрев, пока запущено любое 3D-приложение (браузер с аппаратным ускорением, лаунчер). Если у игры есть собственный профиль NVIDIA с заданным режимом питания, глобальное значение на неё не действует.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Любой современный драйвер NVIDIA (ID и дефолт 5 = «Normal/Optimal power» проверены чтением на 617.14). Применяется к играм, запущенным после изменения.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "nvdrs", "settingId": 274197361, "value": 1}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 274197361, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/news/reflex-low-latency-platform/",
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/configure-nvidia.md"
+    ]
+  },
+  {
+    "id": "nvidia.low-latency-on",
+    "category": "nvidia",
+    "title": "Режим низкой задержки: Вкл.",
+    "description": "Ограничивает очередь заранее подготовленных кадров одним кадром (аналог «Макс. количество заранее подготовленных кадров = 1»). Кадр быстрее попадает на GPU, задержка ввода ниже.",
+    "recommendation": "Для игр: «Вкл.» для DX9/DX11-игр без Reflex. Если в игре есть NVIDIA Reflex — включите Reflex в игре, этот параметр тогда не нужен. Нельзя включать одновременно с «Ультра».",
+    "evidence": "situational",
+    "evidenceNote": "NVIDIA: режим «Вкл.» = прежний Max_Prerendered_Frames = 1; сильнее всего помогает, когда игра упирается в GPU при ~60–100 FPS; в DX12 и Vulkan очередью управляет сама игра, поэтому драйверный режим там не действует. Reflex автоматически имеет приоритет над этим режимом.",
+    "risk": "low",
+    "riskNote": "В сценах, ограниченных процессором, возможны небольшая потеря FPS и рост микрофризов из-за меньшего буфера кадров. Профили некоторых игр (например, Apex Legends: PRERENDERLIMIT=1) уже задают это значение сами — глобальный параметр их не переопределяет.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Драйвер 436.02+ (режим «Low Latency Mode»). Для записи 0x10835000/0x0005F543 нужны внутренние функции NVAPI 0x8A2CF5F5/0xEA99498D: публичный NvAPI_DRS_GetSetting возвращает NVAPI_SETTING_NOT_FOUND (проверено на 617.14).",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "nvdrs", "settingId": 8102046, "value": 1},
+      {"type": "nvdrs", "settingId": 277041152, "value": 0},
+      {"type": "nvdrs", "settingId": 390467, "value": 1}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 8102046, "op": "restoreDefault"},
+      {"type": "nvdrs", "settingId": 277041152, "op": "restoreDefault"},
+      {"type": "nvdrs", "settingId": 390467, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/news/gamescom-2019-game-ready-driver/",
+      "https://www.nvidia.com/en-us/geforce/news/reflex-low-latency-platform/",
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/blob/master/nvidiaProfileInspector/CustomSettingNames.xml",
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/issues/46"
+    ]
+  },
+  {
+    "id": "nvidia.low-latency-ultra",
+    "category": "nvidia",
+    "title": "Режим низкой задержки: Ультра",
+    "description": "Включает в драйвере планирование кадров «точно в срок» (Ultra Low Latency) поверх очереди в 1 кадр. Кадр отправляется на GPU прямо перед тем, как тот освободится.",
+    "recommendation": "Для игр: пробовать в DX9/DX11-играх без Reflex, если GPU загружен почти на 100%. С G-SYNC и внешним ограничителем FPS лучше выбрать «Вкл.». Нельзя включать одновременно с «Вкл.».",
+    "evidence": "situational",
+    "evidenceNote": "NVIDIA заявляет снижение задержки «до 33%» в GPU-ограниченных DX9/DX11-играх; в DX12/Vulkan не действует; Reflex имеет приоритет. По наблюдениям сообщества (Blur Busters), с G-SYNC+V-Sync «Ультра» сам ставит лимит FPS чуть ниже частоты экрана, а сравнения «Ультра» и «Вкл.» в независимых тестах противоречивы.",
+    "risk": "low",
+    "riskNote": "Может перебить ваш ограничитель FPS при G-SYNC (авто-лимит ≈138 FPS на 144 Гц). В заметках к драйверу 441.87 упоминался сброс DWM в играх с BattlEye при «Ультра» (исторически). Требует внутренних функций NVAPI (см. osNote).",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Драйвер 436.02+; поддержка G-SYNC с 441.08. Настройки 0x10835000 и 0x0005F543 скрыты от публичного API — нужен NvAPI_DRS_SetSetting «Ex» (0x8A2CF5F5) с фолбэком на 0x577DD202.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "nvdrs", "settingId": 8102046, "value": 1},
+      {"type": "nvdrs", "settingId": 277041152, "value": 1},
+      {"type": "nvdrs", "settingId": 390467, "value": 2}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 8102046, "op": "restoreDefault"},
+      {"type": "nvdrs", "settingId": 277041152, "op": "restoreDefault"},
+      {"type": "nvdrs", "settingId": 390467, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://www.nvidia.com/en-us/geforce/news/gamescom-2019-game-ready-driver/",
+      "https://www.nvidia.com/en-us/geforce/news/reflex-low-latency-platform/",
+      "https://forums.blurbusters.com/viewtopic.php?p=44687",
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/blob/master/nvidiaProfileInspector/CustomSettingNames.xml",
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/issues/46"
+    ]
+  },
+  {
+    "id": "nvidia.vsync-mode",
+    "category": "nvidia",
+    "title": "Вертикальная синхронизация (глобально)",
+    "description": "Задаёт глобальный режим V-Sync драйвера NVIDIA: по настройке игры, принудительно выкл./вкл. или Fast Sync.",
+    "recommendation": "Для игр: с G-SYNC/G-SYNC Compatible — «Вкл.» плюс лимит FPS на 3–4 кадра ниже частоты экрана (или Reflex). Без VRR и ради минимальной задержки — «Выкл.» (будут разрывы кадра).",
+    "evidence": "situational",
+    "evidenceNote": "Правильный выбор зависит от монитора. Замеры Blur Busters (G-SYNC 101): связка G-SYNC + V-Sync в драйвере + лимит FPS ниже частоты убирает разрывы почти без добавочной задержки; без VRR V-Sync добавляет задержку до нескольких кадров.",
+    "risk": "low",
+    "riskNote": "«Вкл.» без VRR добавляет задержку; «Выкл.» даёт разрывы кадра; Fast Sync полезен только при FPS значительно выше частоты экрана и может давать неравномерность кадров.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Все поддерживаемые драйверы. Адаптивный V-Sync требует второй настройки (VSYNCTEARCONTROL 0x005A375C = 0x99941284) и сюда не включён.",
+    "vendor": "nvidia",
+    "kind": "select",
+    "options": [
+      {"label": "Как в игре (по умолчанию)", "value": 1620202130},
+      {"label": "Выкл.", "value": 138504007},
+      {"label": "Вкл.", "value": 1199655232},
+      {"label": "Быстрая (Fast Sync)", "value": 411601032}
+    ],
+    "apply": [
+      {"type": "nvdrs", "settingId": 11041231, "value": "{{value}}"}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 11041231, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h",
+      "https://blurbusters.com/gsync/gsync101-input-lag-tests-and-settings/"
+    ]
+  },
+  {
+    "id": "nvidia.max-frame-rate",
+    "category": "nvidia",
+    "title": "Ограничение FPS в драйвере",
+    "description": "Включает драйверный ограничитель кадров («Макс. частота кадров») для всех 3D-приложений. Нужен для работы G-SYNC без упора в V-Sync и для стабильного времени кадра.",
+    "recommendation": "Для игр: с G-SYNC — частота экрана минус 3–4 (например, 141 при 144 Гц), если в игре нет Reflex. Если в игре есть свой ограничитель или Reflex — лучше они.",
+    "evidence": "situational",
+    "evidenceNote": "Детерминированный эффект: FPS не превышает лимит. По замерам Blur Busters, внутриигровые ограничители дают меньшую задержку, чем внешние; для G-SYNC важно держать FPS ниже частоты, иначе включается задержка V-Sync. Драйверный ограничитель v3 есть с 441.87, диапазон 20–1000 с 442.19.",
+    "risk": "low",
+    "riskNote": "Лимит действует на все 3D-приложения, включая лаунчеры и бенчмарки. Слишком низкий лимит ограничит FPS во всех играх.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Драйвер 442.19+ (20–1000 FPS). Значение 0 = выкл.",
+    "vendor": "nvidia",
+    "kind": "value",
+    "options": {"min": 20, "max": 1000, "default": 141},
+    "apply": [
+      {"type": "nvdrs", "settingId": 277041154, "value": "{{value}}"}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 277041154, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h",
+      "https://blurbusters.com/gsync/gsync101-input-lag-tests-and-settings/",
+      "https://geeks3d.com/?p=9974"
+    ]
+  },
+  {
+    "id": "nvidia.background-max-frame-rate",
+    "category": "nvidia",
+    "title": "Лимит FPS для свёрнутых игр",
+    "description": "Ограничивает FPS игры, когда её окно не в фокусе (свёрнута или вы переключились на другое окно). Снижает нагрев, шум и потребление в паузах.",
+    "recommendation": "Для игр: 20–30 FPS, если часто сворачиваете игру. Не включайте, если играете на втором мониторе без фокуса или стримите окно игры.",
+    "evidence": "situational",
+    "evidenceNote": "Функция панели NVIDIA с детерминированным эффектом; на FPS в активной игре не влияет. Полезна только при частом переключении окон.",
+    "risk": "low",
+    "riskNote": "Игра без фокуса ввода (второй монитор, захват окна) получит ограниченный FPS. Настройка скрыта от публичного NVAPI — нужен внутренний SetSetting (0x8A2CF5F5).",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "ID 0x10835005 присутствует в Base Profile драйвера 617.14 (чтение только через внутренний GetSetting 0xEA99498D). Диапазон 5–60 взят из NVIDIA Profile Inspector; диапазон слайдера NVCP — НЕ ПРОВЕРЕНО.",
+    "vendor": "nvidia",
+    "kind": "value",
+    "options": {"min": 5, "max": 60, "default": 20},
+    "apply": [
+      {"type": "nvdrs", "settingId": 277041157, "value": "{{value}}"}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 277041157, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/blob/master/nvidiaProfileInspector/CustomSettingNames.xml",
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/commit/75c99ea6c71a522835aac785fcb1af7480c2664b"
+    ]
+  },
+  {
+    "id": "nvidia.texture-filtering-quality",
+    "category": "nvidia",
+    "title": "Фильтрация текстур: качество",
+    "description": "Глобальный пресет оптимизаций текстурной фильтрации драйвера: от «Высокого качества» до «Высокой производительности».",
+    "recommendation": "Для игр: можно поставить «Высокая производительность», но ждите эффект в пределах погрешности. Проверьте FPS до и после.",
+    "evidence": "experimental",
+    "evidenceNote": "На современных GPU (Turing и новее) текстурные блоки редко узкое место; воспроизводимых замеров прироста выше погрешности не найдено. PC-Tuning советует этот параметр только с обязательным собственным бенчмарком.",
+    "risk": "low",
+    "riskNote": "На «Производительности» и «Высокой производительности» возможны лёгкая рябь и мерцание текстур.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Все поддерживаемые драйверы. Дефолт = «Качество» (0).",
+    "vendor": "nvidia",
+    "kind": "select",
+    "options": [
+      {"label": "Высокое качество", "value": 4294967286},
+      {"label": "Качество (по умолчанию)", "value": 0},
+      {"label": "Производительность", "value": 10},
+      {"label": "Высокая производительность", "value": 20}
+    ],
+    "apply": [
+      {"type": "nvdrs", "settingId": 13510289, "value": "{{value}}"}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 13510289, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/configure-nvidia.md"
+    ]
+  },
+  {
+    "id": "nvidia.aniso-sample-optimization",
+    "category": "nvidia",
+    "title": "Оптимизация анизотропной выборки",
+    "description": "Разрешает драйверу уменьшать число анизотропных выборок в зависимости от размера текселя.",
+    "recommendation": "Для игр: менять не обязательно; эффект на FPS обычно не заметен.",
+    "evidence": "experimental",
+    "evidenceNote": "Это микрооптимизация, рассчитанная на старые GPU и DirectX-приложения. Замеров, показывающих ощутимый прирост на современных GPU, не найдено.",
+    "risk": "low",
+    "riskNote": "Возможна слегка более размытая или мерцающая текстура под острыми углами.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт драйвера = Выкл. (0). На машине разработчика уже стоит 1 (пользовательское значение в Base Profile).",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "nvdrs", "settingId": 15151633, "value": 1}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 15151633, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h"
+    ]
+  },
+  {
+    "id": "nvidia.threaded-optimization",
+    "category": "nvidia",
+    "title": "Потоковая оптимизация (OpenGL)",
+    "description": "Управляет многопоточной оптимизацией драйвера в OpenGL-приложениях: авто, вкл. или выкл.",
+    "recommendation": "Для игр: оставить «Авто». Менять только для конкретной OpenGL-игры после замера FPS.",
+    "evidence": "situational",
+    "evidenceNote": "Настройка относится только к OpenGL (OGL_THREAD_CONTROL). Эффект зависит от игры: в одних CPU-ограниченных OpenGL-играх «Вкл.» помогает, в других мешает. На DirectX и Vulkan не влияет.",
+    "risk": "low",
+    "riskNote": "Глобальное «Выкл.» или «Вкл.» может снизить FPS или вызвать фризы в отдельных OpenGL-играх.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Все поддерживаемые драйверы. Дефолт = «Авто» (0).",
+    "vendor": "nvidia",
+    "kind": "select",
+    "options": [
+      {"label": "Авто (по умолчанию)", "value": 0},
+      {"label": "Вкл.", "value": 1},
+      {"label": "Выкл.", "value": 2}
+    ],
+    "apply": [
+      {"type": "nvdrs", "settingId": 549528094, "value": "{{value}}"}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 549528094, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h",
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/blob/master/nvidiaProfileInspector/CustomSettingNames.xml"
+    ]
+  },
+  {
+    "id": "nvidia.shader-cache-size",
+    "category": "nvidia",
+    "title": "Размер кэша шейдеров",
+    "description": "Задаёт максимальный размер дискового кэша скомпилированных шейдеров драйвера. Если кэш переполняется, шейдеры компилируются заново, и в игре появляются фризы.",
+    "recommendation": "Для игр: 100 ГБ или «Без ограничений», если у вас много больших DX12/Vulkan-игр и достаточно места на системном диске.",
+    "evidence": "situational",
+    "evidenceNote": "Дефолт драйвера уже 16 ГБ (PS_SHADERDISKCACHE_MAX_SIZE_DEFAULT = 0x4000 МБ в NvApiDriverSettings.h R615; на 617.14 прочитано 0x4000). Увеличение помогает, только если кэш реально переполняется.",
+    "risk": "low",
+    "riskNote": "Кэш (%LOCALAPPDATA%\\NVIDIA\\DXCache и GLCache) может занять десятки гигабайт на системном диске.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Настройка размера есть в драйверах 496.13+; дефолт менялся между версиями (сейчас 16 ГБ).",
+    "vendor": "nvidia",
+    "kind": "select",
+    "options": [
+      {"label": "10 ГБ", "value": 10240},
+      {"label": "16 ГБ (по умолчанию)", "value": 16384},
+      {"label": "100 ГБ", "value": 102400},
+      {"label": "Без ограничений", "value": 4294967295}
+    ],
+    "apply": [
+      {"type": "nvdrs", "settingId": 11306135, "value": "{{value}}"}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 11306135, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h",
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/blob/master/nvidiaProfileInspector/CustomSettingNames.xml",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/configure-nvidia.md"
+    ]
+  },
+  {
+    "id": "nvidia.preferred-refresh-highest",
+    "category": "nvidia",
+    "title": "Предпочтительная частота: наивысшая",
+    "description": "Заставляет полноэкранные 3D-приложения использовать максимальную доступную частоту обновления, даже если игра по умолчанию просит 60 Гц.",
+    "recommendation": "Для игр: включить, если старые игры в эксклюзивном полноэкранном режиме запускаются на 60 Гц.",
+    "evidence": "situational",
+    "evidenceNote": "Детерминированный эффект только для эксклюзивного полноэкранного режима, где игра сама выбирает частоту. В оконном и безрамочном режимах частоту задаёт рабочий стол — эффекта нет.",
+    "risk": "low",
+    "riskNote": "Редкие старые игры с привязкой логики к 60 Гц могут работать некорректно.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Все поддерживаемые драйверы. Дефолт = «Управление из приложения» (0).",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "nvdrs", "settingId": 6600001, "value": 1}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 6600001, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h"
+    ]
+  },
+  {
+    "id": "nvidia.cuda-force-p2-off",
+    "category": "nvidia",
+    "title": "CUDA: не переводить GPU в P2",
+    "description": "Отключает принудительный перевод GPU в состояние P2 (пониженная частота памяти) во время CUDA-нагрузки.",
+    "recommendation": "Для игр: не нужно. Полезно только для CUDA-задач (рендер, ИИ, вычисления), где важна полная частота памяти.",
+    "evidence": "situational",
+    "evidenceNote": "PC-Tuning показывает снижение частоты памяти в CUDA-нагрузке при включённом P2. Игры CUDA почти не используют, поэтому для игр эффекта нет.",
+    "risk": "medium",
+    "riskNote": "NVIDIA держит P2 для стабильности вычислений; при разгоне памяти CUDA-задачи могут стать нестабильными. ID скрытый: его нет ни в публичном, ни во внутреннем списке NVAPI 617.14, поэтому успешную запись нужно проверять обратным чтением.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт = Вкл. (1) по данным NVIDIA Profile Inspector. На 617.14 значение не задано ни в одном профиле (GetSetting -> SETTING_NOT_FOUND).",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "nvdrs", "settingId": 1343646814, "value": 0}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 1343646814, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/configure-nvidia.md",
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/blob/master/nvidiaProfileInspector/CustomSettingNames.xml"
+    ]
+  },
+  {
+    "id": "nvidia.ansel-disable",
+    "category": "nvidia",
+    "title": "Отключить NVIDIA Ansel",
+    "description": "Запрещает драйверу включать фоторежим Ansel в играх.",
+    "recommendation": "Для игр: отключать, только если Ansel конфликтует с ReShade, оверлеями или инжекторами. FPS это не повышает.",
+    "evidence": "situational",
+    "evidenceNote": "Влияет на совместимость, а не на производительность. PC-Tuning советует отключать из-за возможных конфликтов со сторонними инструментами. Замеров влияния на FPS или задержку нет.",
+    "risk": "low",
+    "riskNote": "Перестанет работать фоторежим Ansel/NVIDIA в поддерживаемых играх. Действует ли настройка на новый фоторежим NVIDIA App — НЕ ПРОВЕРЕНО.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "ANSEL_ENABLE_ID 0x1075D972, дефолт = Вкл. (1). На 617.14 в Base Profile значение не задано.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "nvdrs", "settingId": 276158834, "value": 0}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 276158834, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/configure-nvidia.md"
+    ]
+  },
+  {
+    "id": "nvidia.dlss-sr-override-latest",
+    "category": "nvidia",
+    "title": "DLSS: последняя модель глобально",
+    "description": "Включает драйверную подмену DLSS Super Resolution на последнюю установленную версию и пресет «Рекомендуемый/последний» для всех игр, как функция DLSS Override в NVIDIA App.",
+    "recommendation": "Для игр: опционально, ради качества картинки в DLSS-играх. Задержку и FPS не улучшает; новая модель может стоить несколько процентов FPS.",
+    "evidence": "experimental",
+    "evidenceNote": "NVIDIA App выставляет это для игр из белого списка. Работа глобального значения для всех игр — НЕ ПРОВЕРЕНО, игры могут запретить подмену. Это настройка качества изображения, а не производительности.",
+    "risk": "low",
+    "riskNote": "Возможны артефакты или несовместимость в отдельных играх; модели Transformer на RTX 20/30/40 тяжелее, чем CNN.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Драйверы R570+ с поддержкой DLSS Override (ID есть в публичном списке NVAPI 617.14). Только RTX GPU.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "nvdrs", "settingId": 283385345, "value": 1},
+      {"type": "nvdrs", "settingId": 283385331, "value": 16777215}
+    ],
+    "revert": [
+      {"type": "nvdrs", "settingId": 283385345, "op": "restoreDefault"},
+      {"type": "nvdrs", "settingId": 283385331, "op": "restoreDefault"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h",
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/blob/master/nvidiaProfileInspector/CustomSettingNames.xml"
+    ]
+  },
+  {
+    "id": "nvidia.hdcp-disable",
+    "category": "nvidia",
+    "title": "Отключить HDCP",
+    "description": "Записывает RMHdcpKeyglobZero=1 в ключ класса видеоадаптера NVIDIA. Драйвер считает конфигурацию HDCP неподдерживаемой, и защита контента отключается.",
+    "recommendation": "Для игр: не нужно. Имеет смысл только при проблемах HDCP с картами захвата, сплиттерами или KVM.",
+    "evidence": "experimental",
+    "evidenceNote": "Работоспособность подтверждена исследованием djdallmann: в NVCP появляется «This display does not support HDCP as configured». Прирост производительности или снижение задержки не измерены. Имя RMHdcpKeyglobZero есть в nvlddmkm.sys 617.14.",
+    "risk": "medium",
+    "riskNote": "Перестанет воспроизводиться защищённый контент (Netflix/Disney+ в HD/4K, Blu-ray, часть стримингов). Переустановка драйвера сбрасывает значение.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "Путь содержит плейсхолдер {{nvidiaGpuIndex}}: движок подставляет каждый 4-значный подключ класса {4d36e968-...}, где ProviderName = NVIDIA (на машине разработчика — 0000). На этой машине значение отсутствует (дефолт = нет значения).",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "reg", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\{{nvidiaGpuIndex}}", "name": "RMHdcpKeyglobZero", "valueType": "DWORD", "value": 1, "op": "set"}
+    ],
+    "revert": [
+      {"type": "reg", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\{{nvidiaGpuIndex}}", "name": "RMHdcpKeyglobZero", "valueType": "DWORD", "op": "delete"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINDRIVERS/README.md"
+    ]
+  },
+  {
+    "id": "nvidia.dynamic-pstate-disable",
+    "category": "nvidia",
+    "title": "Зафиксировать GPU в P0 (DisableDynamicPstate)",
+    "description": "Отключает динамическую смену P-состояний: GPU постоянно работает в P0 на максимальных частотах, даже на рабочем столе.",
+    "recommendation": "Для игр: обычно не нужно — «Максимальная производительность» в драйвере даёт почти то же только во время игры. Пробовать только с замером задержки и при хорошем охлаждении.",
+    "evidence": "experimental",
+    "evidenceNote": "djdallmann проверил через nvidia-smi, что карта остаётся в P0 даже на рабочем столе. PC-Tuning приводит этот ключ с требованием собственного бенчмарка. Измеренного выигрыша в задержке в открытых источниках нет. Имя DisableDynamicPstate присутствует в nvlddmkm.sys 617.14.",
+    "risk": "medium",
+    "riskNote": "Заметно выше энергопотребление, температура и шум в простое; на ноутбуках — сильный разряд батареи. Частота может немного превышать заданную при разгоне — возможна нестабильность. Сбрасывается переустановкой драйвера.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "Плейсхолдер {{nvidiaGpuIndex}} — см. nvidia.hdcp-disable. По умолчанию значения нет.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "reg", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\{{nvidiaGpuIndex}}", "name": "DisableDynamicPstate", "valueType": "DWORD", "value": 1, "op": "set"}
+    ],
+    "revert": [
+      {"type": "reg", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}\\{{nvidiaGpuIndex}}", "name": "DisableDynamicPstate", "valueType": "DWORD", "op": "delete"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINDRIVERS/README.md",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/configure-nvidia.md"
+    ]
+  },
+  {
+    "id": "nvidia.telemetry-optout-registry",
+    "category": "nvidia",
+    "title": "Отказ от сбора данных NVIDIA (реестр)",
+    "description": "Записывает флаги отказа от программы сбора данных NVIDIA: OptInOrOutPreference=0, флаги FTS EnableRID*=0 и SendTelemetryData=0.",
+    "recommendation": "Для игр: на производительность не влияет. Включайте ради приватности, если важно.",
+    "evidence": "experimental",
+    "evidenceNote": "Строка OptInOrOutPreference до сих пор есть в nvcpl.dll драйвера 617.14, но действуют ли флаги FTS RID и SendTelemetryData в драйверах 2025–2026, — НЕ ПРОВЕРЕНО. В актуальных драйверах телеметрию шлют плагины NVDisplay.Container (см. nvidia.container-telemetry-plugins).",
+    "risk": "low",
+    "riskNote": "Ничего не ломает: это только флаги согласия. Новые драйверы могут их игнорировать.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "На машине разработчика (617.14) ни одно из этих значений и ключей FTS/Startup не существует, поэтому откат — удаление значений.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "reg", "hive": "HKLM", "path": "SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client", "name": "OptInOrOutPreference", "valueType": "DWORD", "value": 0, "op": "set"},
+      {"type": "reg", "hive": "HKLM", "path": "SOFTWARE\\NVIDIA Corporation\\Global\\FTS", "name": "EnableRID44231", "valueType": "DWORD", "value": 0, "op": "set"},
+      {"type": "reg", "hive": "HKLM", "path": "SOFTWARE\\NVIDIA Corporation\\Global\\FTS", "name": "EnableRID64640", "valueType": "DWORD", "value": 0, "op": "set"},
+      {"type": "reg", "hive": "HKLM", "path": "SOFTWARE\\NVIDIA Corporation\\Global\\FTS", "name": "EnableRID66610", "valueType": "DWORD", "value": 0, "op": "set"},
+      {"type": "reg", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\Startup", "name": "SendTelemetryData", "valueType": "DWORD", "value": 0, "op": "set"}
+    ],
+    "revert": [
+      {"type": "reg", "hive": "HKLM", "path": "SOFTWARE\\NVIDIA Corporation\\NvControlPanel2\\Client", "name": "OptInOrOutPreference", "valueType": "DWORD", "op": "delete"},
+      {"type": "reg", "hive": "HKLM", "path": "SOFTWARE\\NVIDIA Corporation\\Global\\FTS", "name": "EnableRID44231", "valueType": "DWORD", "op": "delete"},
+      {"type": "reg", "hive": "HKLM", "path": "SOFTWARE\\NVIDIA Corporation\\Global\\FTS", "name": "EnableRID64640", "valueType": "DWORD", "op": "delete"},
+      {"type": "reg", "hive": "HKLM", "path": "SOFTWARE\\NVIDIA Corporation\\Global\\FTS", "name": "EnableRID66610", "valueType": "DWORD", "op": "delete"},
+      {"type": "reg", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\Startup", "name": "SendTelemetryData", "valueType": "DWORD", "op": "delete"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/undergroundwires/privacy.sexy/blob/master/src/application/collections/windows.yaml"
+    ]
+  },
+  {
+    "id": "nvidia.telemetry-legacy-tasks",
+    "category": "nvidia",
+    "title": "Отключить старые задачи телеметрии NVIDIA",
+    "description": "Отключает службу NvTelemetryContainer и задачи NvTmMon/NvTmRep/NvTmRepOnLogon/NvTmRep_CrashReport1–4, если они установлены (GeForce Experience и старые установщики).",
+    "recommendation": "Для игр: на FPS не влияет. Показывайте этот пункт только если служба или задачи реально найдены.",
+    "evidence": "situational",
+    "evidenceNote": "Эффект детерминирован (задачи не запускаются), но объекты существуют только при старых пакетах. На драйвере 617.14 без NVIDIA App их нет (проверено: Get-ScheduledTask и Get-Service). privacy.sexy фиксирует отсутствие NvTelemetryContainer на Win11 уже с драйвером 497.09.",
+    "risk": "low",
+    "riskNote": "Перестанут отправляться отчёты о сбоях NVIDIA. Отсутствующие задачи и службы движок должен пропускать без ошибки.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Имена задач взяты из сторонних источников (GUID {B2FE1952-0186-46C3-BAEC-A80AA35AC5B8} совпадает с GUID установщика NVIDIA на этой машине). Наличие с NVIDIA App 2025–2026 — НЕ ПРОВЕРЕНО.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "NvTelemetryContainer", "startType": "Disabled", "stop": true},
+      {"type": "task", "path": "\\NvTmMon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": false},
+      {"type": "task", "path": "\\NvTmRep_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": false},
+      {"type": "task", "path": "\\NvTmRepOnLogon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": false},
+      {"type": "task", "path": "\\NvTmRep_CrashReport1_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": false},
+      {"type": "task", "path": "\\NvTmRep_CrashReport2_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": false},
+      {"type": "task", "path": "\\NvTmRep_CrashReport3_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": false},
+      {"type": "task", "path": "\\NvTmRep_CrashReport4_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": false}
+    ],
+    "revert": [
+      {"type": "service", "name": "NvTelemetryContainer", "startType": "Automatic", "stop": false},
+      {"type": "task", "path": "\\NvTmMon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": true},
+      {"type": "task", "path": "\\NvTmRep_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": true},
+      {"type": "task", "path": "\\NvTmRepOnLogon_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": true},
+      {"type": "task", "path": "\\NvTmRep_CrashReport1_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": true},
+      {"type": "task", "path": "\\NvTmRep_CrashReport2_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": true},
+      {"type": "task", "path": "\\NvTmRep_CrashReport3_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": true},
+      {"type": "task", "path": "\\NvTmRep_CrashReport4_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/undergroundwires/privacy.sexy/blob/master/src/application/collections/windows.yaml",
+      "https://github.com/beatcracker/toptout/issues/3",
+      "https://www.ghacks.net/2016/11/07/nvidia-telemetry-tracking/"
+    ]
+  },
+  {
+    "id": "nvidia.container-telemetry-plugins",
+    "category": "nvidia",
+    "title": "Не загружать плагины телеметрии Display Container",
+    "description": "Ставит DisableLoad=1 для двух необязательных плагинов NVDisplay.Container: GamesessionTelemetry_Plugin (_NvGSTPlugin.dll) и NvTelemetryEventAnalyzer_DeviceDriver_Plugin (_DisplayDriverRAS.dll). Это и есть телеметрия актуальных драйверов.",
+    "recommendation": "Для игр: на FPS не влияет. Только для приватности; после применения проверьте журнал контейнера.",
+    "evidence": "experimental",
+    "evidenceNote": "NVDisplay.Container.exe 617.14 читает «%ls\\DisableLoad» из своего ключа параметров, а для плагина NvcDispCorePlugin там уже есть DisableLoad=0. Что имя подключа = имя DLL без расширения — вывод из структуры реестра, НЕ ПРОВЕРЕНО записью. Проверка: после перезапуска службы в C:\\ProgramData\\NVIDIA\\NVDisplay.ContainerLocalSystem.log и DisplaySessionContainer1.log не должно быть строк «Loaded optional plugin GamesessionTelemetry_Plugin / NvTelemetryEventAnalyzer_DeviceDriver_Plugin».",
+    "risk": "low",
+    "riskNote": "Плагины помечены в журнале как optional. Если имя ключа угадано неверно, настройка просто ничего не изменит. NVIDIA перестанет получать данные о сбоях драйвера.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "DCH-драйверы с NVDisplay.ContainerLocalSystem (проверено наличие плагинов в 617.14). Ключ Parameters\\Session по умолчанию не существует — движок должен создать его.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "reg", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Services\\NVDisplay.ContainerLocalSystem\\Parameters\\LocalSystem\\_DisplayDriverRAS", "name": "DisableLoad", "valueType": "DWORD", "value": 1, "op": "set"},
+      {"type": "reg", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Services\\NVDisplay.ContainerLocalSystem\\Parameters\\Session\\_NvGSTPlugin", "name": "DisableLoad", "valueType": "DWORD", "value": 1, "op": "set"}
+    ],
+    "revert": [
+      {"type": "reg", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Services\\NVDisplay.ContainerLocalSystem\\Parameters\\LocalSystem\\_DisplayDriverRAS", "name": "DisableLoad", "valueType": "DWORD", "op": "delete"},
+      {"type": "reg", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Services\\NVDisplay.ContainerLocalSystem\\Parameters\\Session\\_NvGSTPlugin", "name": "DisableLoad", "valueType": "DWORD", "op": "delete"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/undergroundwires/privacy.sexy/blob/master/src/application/collections/windows.yaml"
+    ]
+  },
+  {
+    "id": "nvidia.display-container-disable",
+    "category": "nvidia",
+    "title": "Отключить службу NVIDIA Display Container LS",
+    "description": "Останавливает и отключает службу NVDisplay.ContainerLocalSystem: в ней работают Панель управления NVIDIA, контекстное меню, обновление игровых профилей и плагины телеметрии.",
+    "recommendation": "Для игр: не рекомендуется. Отключайте, только если не пользуетесь Панелью управления NVIDIA и настраиваете драйвер через это приложение. На ноутбуках не трогать.",
+    "evidence": "experimental",
+    "evidenceNote": "Популярный твик «меньше фоновых процессов», но замеров выигрыша в FPS или задержке (DPC) нет. Цена известна: не открывается Панель управления NVIDIA (Win11/Appx), исчезает пункт меню рабочего стола, перестают обновляться профили игр (NvProfileUpdaterPlugin).",
+    "risk": "medium",
+    "riskNote": "Ломает Панель управления NVIDIA и функции, которые идут через контейнер (NvTopps: питание и производительность на ноутбуках). Обновление драйвера вернёт службе автозапуск. После отката перезагрузитесь или запустите службу вручную.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "DCH-драйверы. Дефолт: Automatic, LocalSystem, Running (проверено sc qc на 617.14).",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "NVDisplay.ContainerLocalSystem", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "NVDisplay.ContainerLocalSystem", "startType": "Automatic", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://www.ghacks.net/2016/11/07/nvidia-telemetry-tracking/"
+    ]
+  },
+  {
+    "id": "nvidia.desktop-context-menu-hide",
+    "category": "nvidia",
+    "title": "Убрать «Панель управления NVIDIA» из меню рабочего стола",
+    "description": "Скрывает пункт «Панель управления NVIDIA» в контекстном меню рабочего стола через политику ContextUIPolicy=0.",
+    "recommendation": "Для игр: косметика, на производительность не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "nvcpl.dll драйвера 617.14 читает именно SOFTWARE\\NVIDIA Corporation\\Global\\NvCplApi\\Policies\\ContextUIPolicy. Значения 0 = скрыть, 2 = показать взяты из сторонних инструкций. Есть отзывы, что на отдельных версиях драйвера пункт возвращается.",
+    "risk": "low",
+    "riskNote": "Панель NVIDIA остаётся доступной из меню «Пуск». Обработчик NvCplDesktopContext не удаляется.",
+    "reboot": "explorer",
+    "os": ["win10", "win11"],
+    "osNote": "На Win11 пункт находится в «Показать дополнительные параметры». По умолчанию значения нет (меню показывается).",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [
+      {"type": "reg", "hive": "HKCU", "path": "Software\\NVIDIA Corporation\\Global\\NvCplApi\\Policies", "name": "ContextUIPolicy", "valueType": "DWORD", "value": 0, "op": "set"}
+    ],
+    "revert": [
+      {"type": "reg", "hive": "HKCU", "path": "Software\\NVIDIA Corporation\\Global\\NvCplApi\\Policies", "name": "ContextUIPolicy", "valueType": "DWORD", "op": "delete"}
+    ],
+    "detect": null,
+    "sources": [
+      "https://www.elevenforum.com/t/add-or-remove-nvidia-control-panel-context-menu-in-windows-11.7984/",
+      "https://www.winhelponline.com/blog/how-to-remove-nvidia-control-panel-from-the-context-menu/"
+    ]
+  },
+  {
+    "id": "nvidia.avoid-negative-lod-clamp",
+    "category": "nvidia",
+    "title": "Отрицательный LOD bias: привязка (не включаем)",
+    "description": "Параметр «Фильтрация текстур — отрицательное отклонение УД = Привязка» запрещает играм отрицательный LOD bias.",
+    "recommendation": "Не применять: оставить «Разрешить».",
+    "evidence": "avoid",
+    "evidenceNote": "Производительность не повышает. DLSS, DLAA и TAA используют отрицательный LOD bias для резкости, поэтому привязка может сделать текстуры мыльнее.",
+    "risk": "low",
+    "riskNote": "Ухудшение чёткости текстур в играх с апскейлерами.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "PS_TEXFILTER_NO_NEG_LODBIAS_ID 0x0019BB68 (1686376), дефолт 0 = Allow.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h"
+    ]
+  },
+  {
+    "id": "nvidia.avoid-shader-cache-off",
+    "category": "nvidia",
+    "title": "Отключение кэша шейдеров (не включаем)",
+    "description": "Совет «отключить кэш шейдеров, чтобы освободить диск или убрать фризы».",
+    "recommendation": "Не применять: кэш шейдеров должен быть включён.",
+    "evidence": "avoid",
+    "evidenceNote": "Без кэша шейдеры перекомпилируются при каждом запуске игры. Это прямая причина фризов и долгих загрузок, а не способ от них избавиться.",
+    "risk": "medium",
+    "riskNote": "Фризы при компиляции шейдеров и более долгая загрузка.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "PS_SHADERDISKCACHE_ID 0x00198FFF (1675263), дефолт 1 = On.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h"
+    ]
+  },
+  {
+    "id": "nvidia.avoid-triple-buffering-on",
+    "category": "nvidia",
+    "title": "Тройная буферизация «для снижения задержки» (не включаем)",
+    "description": "Совет включить тройную буферизацию в драйвере ради меньшей задержки.",
+    "recommendation": "Не применять: оставить «Выкл.».",
+    "evidence": "avoid",
+    "evidenceNote": "Настройка действует только в OpenGL и только с V-Sync. Она убирает падение FPS до половины частоты, но добавляет кадр в очередь, то есть задержку. Для DirectX и Vulkan не действует.",
+    "risk": "low",
+    "riskNote": "Больше задержка в OpenGL-играх с V-Sync.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "OGL_TRIPLE_BUFFER_ID 0x20FDD1F9 (553505273), дефолт 0.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/NVIDIA/nvapi/blob/main/NvApiDriverSettings.h"
+    ]
+  },
+  {
+    "id": "nvidia.avoid-rebar-force-global",
+    "category": "nvidia",
+    "title": "Принудительный Resizable BAR для всех игр (не включаем)",
+    "description": "Глобальное включение rBAR-флагов профилей (0x000F00BA/0x000F00BB/0x000F00FF, 0x000BFA21) для игр, которых нет в белом списке NVIDIA.",
+    "recommendation": "Не применять глобально. Эксперименты допустимы только для отдельной игры с собственным бенчмарком.",
+    "evidence": "avoid",
+    "evidenceNote": "NVIDIA включает rBAR только для проверенных игр. Тесты TechSpot показали, что в части игр rBAR снижает производительность. Size Limit — QWORD-настройка (появилась в R610), и формат «Options» не документирован.",
+    "risk": "high",
+    "riskNote": "Падение FPS или фризы в несовместимых играх; требует включённого ReBAR в BIOS.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "rBAR - Enable v2 (0x000BFA21) требует драйвер 616.56+.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://www.techspot.com/review/2234-nvidia-resizable-bar/",
+      "https://github.com/Orbmu2k/nvidiaProfileInspector/blob/master/nvidiaProfileInspector/CustomSettingNames.xml",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/configure-nvidia.md"
+    ]
+  },
+  {
+    "id": "nvidia.avoid-perf-counters-all-users",
+    "category": "nvidia",
+    "title": "Счётчики производительности GPU для всех пользователей (не включаем)",
+    "description": "Пункт «Разработчик → Управление счётчиками производительности GPU → Разрешить всем пользователям» (RmProfilingAdminOnly=0).",
+    "recommendation": "Не применять: игр это не касается, нужно только разработчикам (Nsight).",
+    "evidence": "avoid",
+    "evidenceNote": "Доступ ограничен администраторами с драйвера 419.17 из-за атак по побочным каналам GPU (бюллетень NVIDIA, ноябрь 2018). Пользы для игр нет.",
+    "risk": "medium",
+    "riskNote": "Открывает доступ к счётчикам GPU любому процессу пользователя — уязвимость класса side-channel.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "Строка RmProfilingAdminOnly рядом с «Global\\NVTweak» есть в nvlddmkm.sys 617.14 (вероятный путь HKLM\\SYSTEM\\CurrentControlSet\\Services\\nvlddmkm\\Global\\NVTweak — НЕ ПРОВЕРЕНО). С R610 NVIDIA переносит этот пункт в NVIDIA App.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://developer.nvidia.com/nvidia-development-tools-solutions-err_nvgpuctrperm-permission-issue-performance-counters"
+    ]
+  },
+  {
+    "id": "nvidia.avoid-disable-preemption",
+    "category": "nvidia",
+    "title": "Отключение вытеснения GPU (Preemption) (не включаем)",
+    "description": "Ключи DisablePreemption / DisableCudaContextPreemption драйвера NVIDIA, а также EnablePreemption=0 в GraphicsDrivers\\Scheduler.",
+    "recommendation": "Не применять.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft (WDDM 1.2+): если ОС не может вытеснить долгие пакеты GPU, приоритетная работа DWM задерживается (рывки окон и анимаций), а TDR может многократно сбрасывать GPU вплоть до BSOD. Замеров, где отключение вытеснения снижает задержку в играх, нет.",
+    "risk": "high",
+    "riskNote": "Подвисания рабочего стола и оверлеев, риск TDR/BSOD 0x116, проблемы с захватом видео и несколькими 3D-приложениями.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "Имена DisablePreemption и DisableCudaContextPreemption присутствуют в nvlddmkm.sys 617.14 — драйвер их читает, поэтому твик не безобиден.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/display/gpu-preemption"
+    ]
+  },
+  {
+    "id": "nvidia.avoid-tiled-display-off",
+    "category": "nvidia",
+    "title": "EnableTiledDisplay=0 (не включаем)",
+    "description": "Ключ, отключающий поддержку «плиточных» мониторов (5K/8K через несколько потоков DisplayPort MST).",
+    "recommendation": "Не применять.",
+    "evidence": "avoid",
+    "evidenceNote": "Касается только плиточных мониторов; данных о влиянии на задержку или FPS обычных конфигураций нет. Это популярный «твик» из сборников без обоснования.",
+    "risk": "medium",
+    "riskNote": "На плиточных мониторах изображение распадается на половины или пропадает полное разрешение.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "Имя EnableTiledDisplay есть в nvlddmkm.sys 617.14; в ключе класса на этой машине есть AllowTiledDisplayOverride=1 (запись INF).",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINDRIVERS/README.md"
+    ]
+  },
+  {
+    "id": "nvidia.avoid-powermizer-legacy",
+    "category": "nvidia",
+    "title": "PowerMizer / PerfLevelSrc (не включаем)",
+    "description": "Старые ключи PerfLevelSrc=0x2222, PowerMizerEnable=0, PowerMizerLevel(AC)=1 для фиксации частот.",
+    "recommendation": "Не применять: используйте «Режим управления питанием» драйвера.",
+    "evidence": "avoid",
+    "evidenceNote": "Это механизм эпохи до Kepler (GeForce 8–500). В nvlddmkm.sys 617.14 осталась строка PerfLevelSrc, но PowerMizerEnable/PowerMizerLevel уже нет. Документации и замеров для современных GPU нет; для фиксации P0 есть DisableDynamicPstate.",
+    "risk": "medium",
+    "riskNote": "Непредсказуемое управление частотами: зависшие частоты или наоборот отсутствие буста.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "Устарело.",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINDRIVERS/README.md"
+    ]
+  },
+  {
+    "id": "nvidia.avoid-profile-updater-off",
+    "category": "nvidia",
+    "title": "Отключение обновления профилей игр (не включаем)",
+    "description": "Отключение задач NvProfileUpdaterDaily/OnLogon или плагина NvProfileUpdaterPlugin, который загружает обновлённые профили игр с services.gfe.nvidia.com.",
+    "recommendation": "Не применять.",
+    "evidence": "avoid",
+    "evidenceNote": "Профили содержат исправления совместимости и оптимизации для конкретных игр между выпусками драйвера. Производительность от отключения не растёт. Это не телеметрия: в журнале плагина видны только запросы профилей.",
+    "risk": "low",
+    "riskNote": "Новые игры могут работать без нужных драйверных профилей до следующего обновления драйвера.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "В 617.14 это плагин сессии NvDisplay.Container, а не задача планировщика (проверено по журналу C:\\ProgramData\\NVIDIA Corporation\\NvProfileUpdaterPlugin).",
+    "vendor": "nvidia",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://www.ghacks.net/2016/11/07/nvidia-telemetry-tracking/"
+    ]
+  }
+]

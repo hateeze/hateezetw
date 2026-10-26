@@ -1,0 +1,1146 @@
+[
+  {
+    "id": "services.diagtrack-disable",
+    "category": "services",
+    "title": "Отключить службу телеметрии DiagTrack",
+    "description": "Отключает службу «Функциональные возможности для подключенных пользователей и телеметрия» (DiagTrack), которая собирает и отправляет диагностические данные Windows в Microsoft.",
+    "recommendation": "Для игр: можно отключить ради приватности; на FPS и задержку не влияет.",
+    "evidence": "proven",
+    "evidenceNote": "Microsoft документирует DiagTrack (Connected User Experiences and Telemetry) как компонент сбора и отправки диагностических данных (endpoint v10.events.data.microsoft.com). Эффект на приватность доказан; публичных замеров влияния на FPS/задержку нет — служба работает эпизодически.",
+    "risk": "low",
+    "riskNote": "Перестанут отправляться диагностические данные: программа Windows Insider требует необязательных данных, «Средство просмотра диагностических данных» будет пустым. Windows Update и Microsoft Store продолжают работать.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Автоматически (Start=2) в Win10 22H2 и Win11 23H2/24H2. Если службы нет (удалена сборкой/твикером, как на машине разработчика) — показывать «Нет в этой системе», revert недоступен.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "DiagTrack", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "DiagTrack", "startType": "Automatic", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/privacy/configure-windows-diagnostic-data-in-your-organization",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/",
+      "https://www.winhelponline.com/blog/windows-10-default-services-configuration/",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "services.dmwappush-disable",
+    "category": "services",
+    "title": "Отключить службу WAP Push (dmwappushservice)",
+    "description": "Отключает службу маршрутизации push-сообщений WAP, которая используется MDM-управлением (Intune) и вспомогательно телеметрией.",
+    "recommendation": "Для игр: эффекта нет; отключать только на домашнем ПК без корпоративного управления.",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft (Server 2016): «OK to disable», служба нужна на клиентах для Intune/MDM и Unified Write Filter. По умолчанию запускается только по триггеру, поэтому выигрыш минимален. Помогает только если ПК не управляется организацией.",
+    "risk": "low",
+    "riskNote": "Сломается MDM/Intune-управление, Windows Autopilot, Unified Write Filter.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Вручную (запуск по триггеру), Start=3, в Win10 22H2 и Win11 23H2. Может отсутствовать на «облегчённых» сборках.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "dmwappushservice", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "dmwappushservice", "startType": "Manual", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/",
+      "https://www.elevenforum.com/t/restore-default-services-in-windows-11.3109/"
+    ]
+  },
+  {
+    "id": "services.sysmain-disable",
+    "category": "services",
+    "title": "Отключить SysMain (Superfetch)",
+    "description": "Отключает службу SysMain, которая предзагружает часто используемые программы в память, ведёт Prefetch и управляет сжатием памяти.",
+    "recommendation": "Для игр: только если все диски — SSD/NVMe и ОЗУ не меньше 16 ГБ; на ПК с HDD или малым объёмом памяти не трогать.",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft отключает SysMain в руководстве по soft real-time для IoT; PC-Tuning рекомендует отключать только при отсутствии HDD. Воспроизводимых замеров прироста FPS нет. Проверено на машине разработчика: при отключённой SysMain Get-MMAgent показывает MemoryCompression и ApplicationLaunchPrefetching = False, папка Prefetch перестаёт обновляться.",
+    "risk": "medium",
+    "riskNote": "Медленнее «холодный» запуск программ, отключается сжатие памяти (при нехватке ОЗУ больше обращений к файлу подкачки), на HDD заметно медленнее загрузка и запуск приложений.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Автоматически (Start=2) в Win10 22H2 и Win11 23H2. Служба останавливается сразу, но состояние сжатия памяти корректно сбрасывается после перезагрузки.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "SysMain", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "SysMain", "startType": "Automatic", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/soft-real-time/soft-real-time-device",
+      "https://github.com/valleyofdoom/PC-Tuning",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/",
+      "https://www.winhelponline.com/blog/windows-10-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.wsearch-disable",
+    "category": "services",
+    "title": "Отключить индексирование поиска (Windows Search)",
+    "description": "Отключает службу Windows Search, которая индексирует файлы и почту для быстрого поиска.",
+    "recommendation": "Для игр: имеет смысл только если вы не пользуетесь поиском файлов в Пуске/Проводнике; на FPS не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "Индексатор создаёт фоновую нагрузку CPU/диска после установки игр и копирования файлов (PC-Tuning), но индексирование притормаживает при активности пользователя; замеров влияния на FPS нет. Польза — только меньше фоновой активности для тех, кому поиск не нужен.",
+    "risk": "medium",
+    "riskNote": "Поиск файлов в Пуске и Проводнике станет медленным и неполным, перестанет работать поиск в Outlook/OneNote; от службы зависит workfolderssvc (Рабочие папки).",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Автоматически (отложенный запуск), Start=2 + DelayedAutostart=1, в Win10 22H2 и Win11 23H2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "WSearch", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "WSearch", "startType": "AutomaticDelayed", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/",
+      "https://www.elevenforum.com/t/restore-default-services-in-windows-11.3109/"
+    ]
+  },
+  {
+    "id": "services.spooler-disable",
+    "category": "services",
+    "title": "Отключить диспетчер печати (без принтера)",
+    "description": "Отключает службу «Диспетчер печати» (Spooler). Уменьшает поверхность атаки (уязвимости класса PrintNightmare).",
+    "recommendation": "Для игр: только если нет принтера и не нужен «Microsoft Print to PDF»; на FPS не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "MSRC (CVE-2021-34527) рекомендует отключать Spooler, если печать не нужна; Microsoft (Server 2016): «OK to disable». Эффект — безопасность, не производительность. Применимо только без принтера.",
+    "risk": "low",
+    "riskNote": "Не будет печати и виртуального принтера PDF; некоторые программы медленнее открывают диалог печати или показывают ошибку.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Автоматически (Start=2) в Win10 22H2 и Win11 23H2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "Spooler", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "Spooler", "startType": "Automatic", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-34527",
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.mapsbroker-manual",
+    "category": "services",
+    "title": "Диспетчер скачанных карт — вручную",
+    "description": "Переводит службу MapsBroker из отложенного автозапуска в ручной режим: она будет запускаться только приложениями карт.",
+    "recommendation": "Для игр: безопасная мелочь, если не пользуетесь офлайн-картами; на FPS не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft (Server 2016): «OK to disable, если приложения на неё не опираются»; winutil переводит её в Manual. Эффект — одна служба меньше при загрузке, измеримого влияния на игры нет.",
+    "risk": "low",
+    "riskNote": "Практически ничего: служба запустится по запросу приложения «Карты».",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Автоматически (отложенный запуск), Start=2 + DelayedAutostart=1, в Win10 22H2 и Win11 23H2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "MapsBroker", "startType": "Manual", "stop": false}
+    ],
+    "revert": [
+      {"type": "service", "name": "MapsBroker", "startType": "AutomaticDelayed", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.xbox-live-disable",
+    "category": "services",
+    "title": "Отключить службы Xbox Live",
+    "description": "Отключает службы входа, облачных сохранений и сети Xbox Live (XblAuthManager, XblGameSave, XboxNetApiSvc) и задачу XblGameSaveTask.",
+    "recommendation": "Для игр: только если вы не используете Game Pass, приложение Xbox и игры из Microsoft Store. Прироста FPS нет — службы и так запускаются по требованию.",
+    "evidence": "situational",
+    "evidenceNote": "По умолчанию службы стоят «Вручную» и не работают без запроса, поэтому выигрыша производительности нет; Microsoft рекомендует их отключать только на Windows Server. Польза — лишь отсутствие фоновой синхронизации у тех, кто не пользуется экосистемой Xbox.",
+    "risk": "medium",
+    "riskNote": "Перестанут работать вход Xbox в играх (Forza, Halo, Minecraft Bedrock и др.), облачные сохранения, Xbox party; игры Game Pass/Store могут не запуститься.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолты (Win10 22H2 и Win11 23H2): XblAuthManager — Вручную, XblGameSave — Вручную (по триггеру), XboxNetApiSvc — Вручную; задача \\Microsoft\\XblGameSave\\XblGameSaveTask включена. XblGameSave зависит от XblAuthManager — останавливать её первой. Задача XblGameSaveTaskLogon есть только на старых сборках Win10 (если не найдена — пропустить).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "XblGameSave", "startType": "Disabled", "stop": true},
+      {"type": "service", "name": "XblAuthManager", "startType": "Disabled", "stop": true},
+      {"type": "service", "name": "XboxNetApiSvc", "startType": "Disabled", "stop": true},
+      {"type": "task", "path": "\\Microsoft\\XblGameSave\\XblGameSaveTask", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\XblGameSave\\XblGameSaveTaskLogon", "enabled": false}
+    ],
+    "revert": [
+      {"type": "service", "name": "XblAuthManager", "startType": "Manual", "stop": false},
+      {"type": "service", "name": "XblGameSave", "startType": "Manual", "stop": false},
+      {"type": "service", "name": "XboxNetApiSvc", "startType": "Manual", "stop": false},
+      {"type": "task", "path": "\\Microsoft\\XblGameSave\\XblGameSaveTask", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\XblGameSave\\XblGameSaveTaskLogon", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/",
+      "https://www.winhelponline.com/blog/windows-10-default-services-configuration/",
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool"
+    ]
+  },
+  {
+    "id": "services.lfsvc-disable",
+    "category": "services",
+    "title": "Отключить службу геопозиции",
+    "description": "Отключает «Службу географического положения» (lfsvc), через которую приложения получают местоположение устройства.",
+    "recommendation": "Для игр: не влияет; для приватности удобнее переключатель «Доступ к расположению» в разделе приватности.",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft (Server 2016): «OK to disable, если приложения на неё не опираются». По умолчанию запускается по триггеру. Эффект — приватность, только если вам не нужны функции расположения.",
+    "risk": "low",
+    "riskNote": "Перестанут работать определение местоположения, погода по месту, автоматический часовой пояс, «Поиск устройства», карты.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Вручную (запуск по триггеру), Start=3, в Win10 22H2 и Win11 23H2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "lfsvc", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "lfsvc", "startType": "Manual", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "services.dps-disable",
+    "category": "services",
+    "title": "Отключить службу политики диагностики (DPS)",
+    "description": "Отключает DPS — службу, которая обнаруживает проблемы Windows, запускает средства устранения неполадок и ведёт статистику использования ресурсов (SRUM).",
+    "recommendation": "Для игр: эксперимент без доказанной пользы; оставьте включённой, если пользуетесь средствами устранения неполадок или статистикой трафика.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft отключает DPS только в руководстве по soft real-time для IoT-устройств; для игр замеров нет. Проверено на машине разработчика: в процессе службы DPS загружены srumsvc.dll и srumapi.dll, то есть DPS хостит SRUM.",
+    "risk": "medium",
+    "riskNote": "Не будут работать средства устранения неполадок и сетевая диагностика, перестанет обновляться статистика «Использование данных», «Журнал приложений» в Диспетчере задач и расход батареи.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Автоматически (Start=2) в Win10 22H2 и Win11 23H2. Узлы WdiServiceHost/WdiSystemHost (Вручную) отдельно не трогать.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "DPS", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "DPS", "startType": "Automatic", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/soft-real-time/soft-real-time-device",
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.pcasvc-disable",
+    "category": "services",
+    "title": "Отключить помощника по совместимости программ",
+    "description": "Отключает службу PcaSvc, которая следит за запуском программ и автоматически применяет исправления совместимости для старых приложений.",
+    "recommendation": "Для игр: эксперимент; может пригодиться, если раздражают окна «Программа могла быть установлена неправильно».",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft (Server 2016): «OK to disable». Публичных замеров влияния на производительность нет.",
+    "risk": "low",
+    "riskNote": "Старые программы и установщики не получат автоматических исправлений совместимости; пропадут подсказки PCA.",
+    "reboot": "none",
+    "os": ["win11"],
+    "osNote": "Дефолт Win11 23H2: Автоматически (отложенный запуск, по триггеру), Start=2 + DelayedAutostart=1. Для Win10 22H2 дефолт другой (Вручную) — см. services.pcasvc-disable-win10.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "PcaSvc", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "PcaSvc", "startType": "AutomaticDelayed", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/",
+      "https://www.elevenforum.com/t/restore-default-services-in-windows-11.3109/"
+    ]
+  },
+  {
+    "id": "services.pcasvc-disable-win10",
+    "category": "services",
+    "title": "Отключить помощника по совместимости программ",
+    "description": "Отключает службу PcaSvc, которая следит за запуском программ и автоматически применяет исправления совместимости для старых приложений.",
+    "recommendation": "Для игр: эксперимент; может пригодиться, если раздражают окна «Программа могла быть установлена неправильно».",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft (Server 2016): «OK to disable». Публичных замеров влияния на производительность нет.",
+    "risk": "low",
+    "riskNote": "Старые программы и установщики не получат автоматических исправлений совместимости; пропадут подсказки PCA.",
+    "reboot": "none",
+    "os": ["win10"],
+    "osNote": "Дефолт Win10 22H2 (чистая установка Pro): Вручную, Start=3. Для Win11 — отдельная запись services.pcasvc-disable.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "PcaSvc", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "PcaSvc", "startType": "Manual", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server",
+      "https://www.winhelponline.com/blog/windows-10-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.trkwks-manual",
+    "category": "services",
+    "title": "Клиент отслеживания связей — вручную",
+    "description": "Переводит службу TrkWks (отслеживание перемещённых файлов NTFS для ярлыков) в ручной режим.",
+    "recommendation": "Для игр: эксперимент без измеримой пользы; можно, если не важны ярлыки на файлы, переносимые между дисками.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft даёт «No guidance»; служба постоянно запущена, но почти не потребляет ресурсов. Замеров влияния на игры нет.",
+    "risk": "low",
+    "riskNote": "Ярлыки и OLE-ссылки на файлы, перемещённые между томами или по сети, перестанут автоматически исправляться.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Автоматически (Start=2) в Win10 22H2 и Win11 23H2. Триггеров у службы нет, поэтому в режиме «Вручную» она не запускается сама.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "TrkWks", "startType": "Manual", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "TrkWks", "startType": "Automatic", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.wersvc-disable",
+    "category": "services",
+    "title": "Отключить службу отчётов об ошибках",
+    "description": "Отключает службу регистрации ошибок Windows (WerSvc): не будут создаваться и отправляться отчёты о сбоях программ.",
+    "recommendation": "Для игр: лучше использовать политику «Отключить отчёты об ошибках» в разделе приватности; служба нужна для локальных дампов.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft (Server 2016) рекомендует НЕ отключать WerSvc. Служба запускается только по триггеру при сбое, влияния на производительность в игре нет.",
+    "risk": "medium",
+    "riskNote": "Пропадут локальные отчёты и дампы WER, окна «Программа не отвечает» с поиском решения; сложнее диагностировать вылеты игр.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Вручную (запуск по триггеру), Start=3, в Win10 22H2 и Win11 23H2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "service", "name": "WerSvc", "startType": "Disabled", "stop": true}
+    ],
+    "revert": [
+      {"type": "service", "name": "WerSvc", "startType": "Manual", "stop": false}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "services.xboxgip-disable",
+    "category": "services",
+    "title": "Отключить службу аксессуаров Xbox (НЕ включаем)",
+    "description": "Отключение XboxGipSvc — службы управления аксессуарами Xbox. В приложение не входит.",
+    "recommendation": "Для игр: не отключать — нужна для геймпадов и аксессуаров Xbox.",
+    "evidence": "avoid",
+    "evidenceNote": "Служба и так запускается только по триггеру при подключении аксессуара, поэтому пользы нет. Есть сообщения (winutil issue #1733), что после такого твика служба зависает в состоянии «Запускается», а откат не помогает.",
+    "risk": "high",
+    "riskNote": "Проблемы с геймпадами Xbox, беспроводным адаптером, прошивками и переназначением кнопок (Xbox Accessories).",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Вручную (запуск по триггеру) в Win10 22H2 и Win11 23H2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/ChrisTitusTech/winutil/issues/1733",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.demand-start-noise",
+    "category": "services",
+    "title": "Отключение служб «по требованию» (НЕ включаем)",
+    "description": "Массовое отключение служб Fax, RetailDemo, wisvc, PhoneSvc, WpcMonSvc, SEMgrSvc, diagnosticshub.standardcollector.service. В приложение не входит.",
+    "recommendation": "Для игр: бесполезно — эти службы не работают, пока их не вызовут.",
+    "evidence": "avoid",
+    "evidenceNote": "Все перечисленные службы по умолчанию «Вручную» или «Вручную (по триггеру)» и не потребляют ресурсов без запроса; отключение не даёт ни FPS, ни памяти. Fax на чистой Win11 23H2 вообще отсутствует (компонент по требованию).",
+    "risk": "medium",
+    "riskNote": "Ломает при необходимости: факс, программу Insider, звонки через «Связь с телефоном», Microsoft Family, NFC/платежи, профилировщик Visual Studio.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолты: Fax — Вручную (Win10), RetailDemo/WpcMonSvc/diagnosticshub — Вручную, wisvc/PhoneSvc/SEMgrSvc — Вручную (по триггеру).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/",
+      "https://www.winhelponline.com/blog/windows-10-default-services-configuration/",
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server"
+    ]
+  },
+  {
+    "id": "services.anticheat-never-touch",
+    "category": "services",
+    "title": "Службы античитов (НИКОГДА не трогать)",
+    "description": "Изменение служб vgc/vgk (Riot Vanguard), FACEIT/FACEITService, EasyAntiCheat/EasyAntiCheat_EOS, BEService/BEDaisy (BattlEye). В приложение не входит.",
+    "recommendation": "Для игр: не трогать — игра с античитом не запустится.",
+    "evidence": "avoid",
+    "evidenceNote": "Отключённая или неправильно настроенная служба vgc — частая причина ошибки VAN 57 в Valorant/LoL (сторонние руководства). Vanguard сам меняет тип запуска vgc (на машине разработчика Event 7040: «Вручную → Автоматически»). Приложение должно менять только службы из белого списка каталога.",
+    "risk": "high",
+    "riskNote": "Игры с античитом не запускаются или кикают; возможны подозрения античита на вмешательство.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Античиты устанавливаются вместе с играми; имена служб и драйверов могут меняться — дополнительно исключать службы, чей ImagePath лежит в папках античитов.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://www.exitlag.com/blog/league-of-legends-vanguard-errors/"
+    ]
+  },
+  {
+    "id": "services.text-input-never-touch",
+    "category": "services",
+    "title": "Служба ввода текста (НИКОГДА не трогать)",
+    "description": "Отключение TabletInputService (Win10) или TextInputManagementService (Win11). В приложение не входит.",
+    "recommendation": "Для игр: не трогать — ломается ввод текста.",
+    "evidence": "avoid",
+    "evidenceNote": "Блог Microsoft Japan «Не останавливайте эту службу»: отключение ломает IME и ввод в современных приложениях; в Win11 служба переименована в TextInputManagementService и сделана неотключаемой. Microsoft (Server 2016): «Do not disable».",
+    "risk": "high",
+    "riskNote": "Не работает ввод в поиске, Пуске, UWP-приложениях, переключение раскладок/IME, сенсорная клавиатура, панель эмодзи; возможны проблемы со входом в систему.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Win10 22H2 TabletInputService — Вручную (по триггеру); Win11 23H2 TextInputManagementService — Автоматически (по триггеру).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://blogs.windows.com/japan/2020/10/19/dont-stop-the-service-or-how-to-disable-touch-keyboard-correctly/",
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server"
+    ]
+  },
+  {
+    "id": "services.core-never-touch",
+    "category": "services",
+    "title": "Системные службы ядра, сети, звука и Store (НИКОГДА не трогать)",
+    "description": "Отключение BFE, mpssvc, Winmgmt, RpcSs, DcomLaunch, EventLog, Schedule, Dhcp, Dnscache, nsi, CryptSvc, Audiosrv, AudioEndpointBuilder, AppXSvc, ClipSVC, InstallService, wlidsvc, TokenBroker, StateRepository и подобных. В приложение не входит.",
+    "recommendation": "Для игр: не трогать — ломается система, сеть, звук, Store и Game Pass.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft (Server 2016) помечает их «Do not disable»; Audiosrv отключается только в руководстве soft real-time для IoT-устройств без звука. Пользы для игр нет.",
+    "risk": "high",
+    "riskNote": "Нет сети/брандмауэра/VPN, звука, WMI (в т.ч. для самого приложения), Microsoft Store и игр Game Pass; возможна незагружаемая система.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Полный список групп — в services-tasks-privacy-cleanup.md, §2.3.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/security/windows-services/security-guidelines-for-disabling-system-services-in-windows-server",
+      "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/soft-real-time/soft-real-time-device"
+    ]
+  },
+  {
+    "id": "services.waasmedic-disable",
+    "category": "services",
+    "title": "Отключить WaaSMedicSvc (НЕ включаем)",
+    "description": "Отключение службы восстановления Центра обновления Windows. В приложение не входит.",
+    "recommendation": "Для игр: бесполезно и небезопасно.",
+    "evidence": "avoid",
+    "evidenceNote": "Служба защищённая (LaunchProtected=2 в реестре): Microsoft прямо пишет, что не-защищённый процесс, включая администратора, не может менять конфигурацию защищённой службы; ChangeServiceConfig вернёт ERROR_ACCESS_DENIED. Обход через запись Start в реестр — обход механизма защиты; на игры не влияет.",
+    "risk": "high",
+    "riskNote": "Нарушение механизма самовосстановления обновлений, пропуск исправлений безопасности.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Вручную (Start=3) в Win10 22H2 и Win11 23H2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/services/protecting-anti-malware-services-",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.wuauserv-disable",
+    "category": "services",
+    "title": "Отключить Центр обновления Windows (НЕ включаем)",
+    "description": "Отключение службы wuauserv. В приложение не входит.",
+    "recommendation": "Для игр: не отключать; если мешают обновления — используйте часы активности и паузу обновлений.",
+    "evidence": "avoid",
+    "evidenceNote": "Служба и так «Вручную (по триггеру)». Отключение блокирует исправления безопасности, обновления Defender и часть функций Store; Microsoft допускает это только для изолированных real-time устройств с отдельным планом обновлений.",
+    "risk": "high",
+    "riskNote": "Нет обновлений безопасности, драйверов, компонентов Store/Game Pass; Update Orchestrator и WaaSMedic будут пытаться восстановить службу.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Вручную (запуск по триггеру), Start=3.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/soft-real-time/soft-real-time-device",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.bits-disable",
+    "category": "services",
+    "title": "Отключить BITS (НЕ включаем)",
+    "description": "Отключение фоновой интеллектуальной службы передачи. В приложение не входит.",
+    "recommendation": "Для игр: не отключать.",
+    "evidence": "avoid",
+    "evidenceNote": "BITS используют Windows Update, Store, Defender и многие программы обновления. Windows сама переключает тип запуска BITS «Вручную ⇄ Автоматически» (на машине разработчика — несколько раз в час, Event 7040), поэтому твик и его детект ненадёжны.",
+    "risk": "high",
+    "riskNote": "Ломаются загрузки обновлений, Store, сигнатуры Defender, сторонние автообновления.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт на чистой установке: Вручную (Win10 22H2 и Win11 23H2); во время заданий Windows временно делает её Автоматической.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/",
+      "https://learn.microsoft.com/en-us/troubleshoot/windows-client/installing-updates-features-roles/additional-resources-for-windows-update"
+    ]
+  },
+  {
+    "id": "services.dosvc-disable",
+    "category": "services",
+    "title": "Отключить службу оптимизации доставки (НЕ включаем)",
+    "description": "Отключение службы DoSvc. В приложение не входит — для отключения P2P есть политика privacy.delivery-optimization-p2p-off.",
+    "recommendation": "Для игр: не трогать службу; при желании отключите только одноранговую раздачу политикой.",
+    "evidence": "avoid",
+    "evidenceNote": "Служба защищённая (LaunchProtected=2) — изменение через SCM запрещено. Microsoft рекомендует управлять Delivery Optimization политикой DODownloadMode; режим 0 отключает P2P, сохраняя загрузку обновлений.",
+    "risk": "high",
+    "riskNote": "Могут перестать загружаться обновления Windows и приложения Store.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: Win10 22H2 — Вручную (по триггеру); Win11 23H2 — Автоматически (отложенный, по триггеру).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/deployment/do/waas-delivery-optimization-reference",
+      "https://learn.microsoft.com/en-us/windows/win32/services/protecting-anti-malware-services-"
+    ]
+  },
+  {
+    "id": "services.defender-disable",
+    "category": "services",
+    "title": "Отключить службы Защитника (НЕ включаем)",
+    "description": "Отключение WinDefend, WdNisSvc, SecurityHealthService, wscsvc, Sense, MDCoreSvc. В приложение не входит.",
+    "recommendation": "Для игр: не отключать; при необходимости добавьте папку игры в исключения Защитника.",
+    "evidence": "avoid",
+    "evidenceNote": "Службы защищены (LaunchProtected=2/3) и Tamper Protection; штатно изменить нельзя. Отключение снимает антивирусную защиту; устойчивого выигрыша FPS не доказано.",
+    "risk": "high",
+    "riskNote": "Система без антивирусной защиты; Защитник может самовосстановиться после обновлений.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: WinDefend — Автоматически, SecurityHealthService — Вручную, wscsvc — Автоматически (отложенный).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/services/protecting-anti-malware-services-",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.wpnservice-disable",
+    "category": "services",
+    "title": "Отключить службу push-уведомлений (НЕ включаем)",
+    "description": "Отключение WpnService / WpnUserService. В приложение не входит — для тишины во время игры используйте режим «Не беспокоить».",
+    "recommendation": "Для игр: не отключать; используйте «Не беспокоить» или игровой режим.",
+    "evidence": "avoid",
+    "evidenceNote": "Без WpnService не работают уведомления, часть Центра уведомлений и приложения, зависящие от WNS. Влияния на FPS не показано.",
+    "risk": "medium",
+    "riskNote": "Нет уведомлений, ломаются отдельные функции Store-приложений и мессенджеров.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: WpnService — Автоматически (Win10 22H2 и Win11 23H2); WpnUserService — пер-пользовательская, Автоматически.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/application-management/per-user-services-in-windows",
+      "https://www.winhelponline.com/blog/windows-11-default-services-configuration/"
+    ]
+  },
+  {
+    "id": "services.delete-services",
+    "category": "services",
+    "title": "Удаление служб (sc delete) (НЕ включаем)",
+    "description": "Удаление служб телеметрии и прочих (например, sc delete DiagTrack). В приложение не входит.",
+    "recommendation": "Для игр: никогда не удалять службы — только менять тип запуска.",
+    "evidence": "avoid",
+    "evidenceNote": "Удаление необратимо без переустановки или импорта ключа с той же сборки; параметры служб (ImagePath, RequiredPrivileges, TriggerInfo) различаются между сборками. На машине разработчика DiagTrack и dmwappushservice удалены — вернуть их твиком невозможно.",
+    "risk": "high",
+    "riskNote": "Невозможно откатить; возможны ошибки обновлений функций и компонентов, которые ожидают службу.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Касается всех версий.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://www.elevenforum.com/t/restore-default-services-in-windows-11.3109/"
+    ]
+  },
+  {
+    "id": "tasks.compat-appraiser-off",
+    "category": "tasks",
+    "title": "Отключить задачи оценки совместимости (Appraiser)",
+    "description": "Отключает задачи Microsoft Compatibility Appraiser, MareBackup и родственные: они собирают инвентаризацию программ для телеметрии совместимости и иногда дают заметные всплески нагрузки CPU/диска.",
+    "recommendation": "Для игр: можно отключить ради приватности и меньшего числа фоновых всплесков.",
+    "evidence": "proven",
+    "evidenceNote": "Microsoft (VDOT) описывает Appraiser как сбор телеметрии программ. Проверено на 23H2: задача Appraiser выполняет «sc.exe start InventorySvc», а MareBackup — «compattelrunner.exe -m:appraiser.dll -f:DoScheduledTelemetryRun», поэтому отключаются обе. Влияние на FPS не измерено.",
+    "risk": "low",
+    "riskNote": "Проверки готовности к обновлению версии Windows могут работать хуже; список приложений для восстановления через «Архивацию Windows» может не обновляться (не проверено). Крупные обновления Windows могут снова включить задачи.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Win11 23H2: есть Appraiser и MareBackup, нет ProgramDataUpdater и Appraiser Exp (проверено по XML-файлам задач). Win10 22H2: набор не проверен. Отсутствующие задачи пропускать.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser Exp", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\ProgramDataUpdater", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\MareBackup", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser Exp", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\ProgramDataUpdater", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\MareBackup", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool",
+      "https://learn.microsoft.com/fr-fr/answers/questions/3876932/service-inventorysvc",
+      "https://github.com/ChrisTitusTech/winutil/blob/25.05.23/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "tasks.ceip-off",
+    "category": "tasks",
+    "title": "Отключить задачи программы улучшения качества (CEIP)",
+    "description": "Отключает задачи CEIP: Consolidator, UsbCeip, KernelCeipTask, Autochk\\Proxy и сборщик диагностики дисков, которые собирают и отправляют данные об использовании.",
+    "recommendation": "Для игр: можно отключить ради приватности; на FPS не влияет.",
+    "evidence": "proven",
+    "evidenceNote": "Описания задач (Microsoft, VDOT): Consolidator — «собирает и отправляет данные об использовании», Autochk\\Proxy — «собирает и выгружает SQM-данные autochk для CEIP», DiskDiagnosticDataCollector — «отправляет общие сведения о диске и системе». Эффект на приватность документирован.",
+    "risk": "low",
+    "riskNote": "Функциональность Windows не затрагивается.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на стоковых Win10 22H2 и Win11 23H2 (на машине разработчика удалены — «Not Found»). KernelCeipTask на 23H2 — не проверено. Отсутствующие задачи пропускать. Состояние DiskDiagnosticDataCollector по умолчанию — не проверено, revert включает её.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\Consolidator", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\UsbCeip", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\KernelCeipTask", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Autochk\\Proxy", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\DiskDiagnostic\\Microsoft-Windows-DiskDiagnosticDataCollector", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\Consolidator", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\UsbCeip", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\KernelCeipTask", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Autochk\\Proxy", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\DiskDiagnostic\\Microsoft-Windows-DiskDiagnosticDataCollector", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool",
+      "https://github.com/ChrisTitusTech/winutil/blob/25.05.23/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "tasks.feedback-siuf-off",
+    "category": "tasks",
+    "title": "Отключить задачи опросов обратной связи",
+    "description": "Отключает задачи DmClient и DmClientOnScenarioDownload, которые загружают и обновляют опросы обратной связи Windows (SIUF).",
+    "recommendation": "Для игр: можно отключить — меньше всплывающих опросов; на FPS не влияет.",
+    "evidence": "proven",
+    "evidenceNote": "Задача запускает dmclient.exe с описанием «Update SIUF strings» (проверено на машине). Вместе с политикой обратной связи убирает опросы; эффект документирован.",
+    "risk": "low",
+    "riskNote": "Не будут показываться опросы Центра отзывов.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на Win10 22H2 и Win11 23H2 (на машине разработчика уже отключены). Дефолт — включены.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Feedback\\Siuf\\DmClient", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Feedback\\Siuf\\DmClientOnScenarioDownload", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Feedback\\Siuf\\DmClient", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Feedback\\Siuf\\DmClientOnScenarioDownload", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services",
+      "https://github.com/ChrisTitusTech/winutil/blob/25.05.23/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "tasks.device-census-off",
+    "category": "tasks",
+    "title": "Отключить перепись устройства (Device Census)",
+    "description": "Отключает задачи Device Information, которые запускают devicecensus.exe для сбора сведений об устройстве в составе диагностических данных.",
+    "recommendation": "Для игр: эксперимент; смысл есть только если служба телеметрии оставлена включённой.",
+    "evidence": "experimental",
+    "evidenceNote": "Проверено: задача запускает «devicecensus.exe SystemCxt». Census — часть обязательных диагностических данных; при отключённой DiagTrack данные и так не отправляются. Влияние на подбор драйверов/обновлений не проверено.",
+    "risk": "low",
+    "riskNote": "Возможное влияние на таргетинг обновлений и драйверов через Windows Update (не проверено).",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "На Win11 23H2 обе задачи есть (проверено); Win10 22H2 — не проверено.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Device Information\\Device", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Device Information\\Device User", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Device Information\\Device", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Device Information\\Device User", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/privacy/configure-windows-diagnostic-data-in-your-organization"
+    ]
+  },
+  {
+    "id": "tasks.maps-off",
+    "category": "tasks",
+    "title": "Отключить задачи офлайн-карт",
+    "description": "Отключает задачи MapsToastTask и MapsUpdateTask (уведомления и автообновление скачанных карт).",
+    "recommendation": "Для игр: безопасно, если не пользуетесь приложением «Карты».",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft (VDOT) отключает MapsToastTask; автообновление карт также управляется политикой. Полезно только тем, кто не использует офлайн-карты.",
+    "risk": "low",
+    "riskNote": "Офлайн-карты не будут обновляться автоматически.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на Win10 22H2; на Win11 23H2 папка задачи есть, наличие MapsUpdateTask — не проверено. Отсутствующие задачи пропускать.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Maps\\MapsToastTask", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Maps\\MapsUpdateTask", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Maps\\MapsToastTask", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Maps\\MapsUpdateTask", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool",
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ]
+  },
+  {
+    "id": "tasks.family-safety-off",
+    "category": "tasks",
+    "title": "Отключить задачи Семейной безопасности",
+    "description": "Отключает задачи FamilySafetyMonitor и FamilySafetyRefreshTask (контроль Microsoft Family).",
+    "recommendation": "Для игр: безопасно, если на ПК нет детских учётных записей Microsoft Family.",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft (VDOT) отключает обе задачи; задача запускает wpcmon.exe (проверено). Полезно только без Microsoft Family.",
+    "risk": "low",
+    "riskNote": "Перестанут применяться ограничения родительского контроля Microsoft Family.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на Win10 22H2 и Win11 23H2. Дефолт — включены.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Shell\\FamilySafetyMonitor", "enabled": false},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Shell\\FamilySafetyRefreshTask", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Shell\\FamilySafetyMonitor", "enabled": true},
+      {"type": "task", "path": "\\Microsoft\\Windows\\Shell\\FamilySafetyRefreshTask", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool"
+    ]
+  },
+  {
+    "id": "tasks.wer-queue-off",
+    "category": "tasks",
+    "title": "Отключить отправку очереди отчётов об ошибках",
+    "description": "Отключает задачу QueueReporting, которая отправляет накопленные отчёты Windows Error Reporting.",
+    "recommendation": "Для игр: имеет смысл вместе с политикой «Отключить отчёты об ошибках».",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft (VDOT) отключает QueueReporting. Эффект — приватность; полезно, если вы не хотите отправлять отчёты о сбоях.",
+    "risk": "low",
+    "riskNote": "Отчёты о сбоях не будут отправлены в Microsoft и разработчикам программ.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на Win10 22H2 и Win11 23H2 (на машине разработчика удалена).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Windows Error Reporting\\QueueReporting", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Windows Error Reporting\\QueueReporting", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool",
+      "https://learn.microsoft.com/en-us/windows/privacy/configure-windows-diagnostic-data-in-your-organization"
+    ]
+  },
+  {
+    "id": "tasks.winsat-off",
+    "category": "tasks",
+    "title": "Отключить WinSAT при обслуживании",
+    "description": "Отключает задачу WinSAT, которая во время автоматического обслуживания измеряет производительность системы.",
+    "recommendation": "Для игр: эксперимент; обслуживание и так не запускается, пока вы играете.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft (VDOT) отключает WinSAT в VDI. Задача работает в рамках простоя, поэтому влияние на игровые сессии не доказано.",
+    "risk": "low",
+    "riskNote": "Не будут обновляться оценки WinSAT, которые используют некоторые компоненты.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на Win10 22H2 и Win11 23H2 (на машине разработчика удалена).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Maintenance\\WinSAT", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Maintenance\\WinSAT", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool"
+    ]
+  },
+  {
+    "id": "tasks.power-efficiency-off",
+    "category": "tasks",
+    "title": "Отключить диагностику энергопотребления",
+    "description": "Отключает задачу AnalyzeSystem, которая периодически анализирует систему на условия повышенного энергопотребления.",
+    "recommendation": "Для игр: эксперимент; на настольном ПК задача бесполезна, но и не мешает.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft (VDOT): «анализирует систему на условия, вызывающие высокое энергопотребление». Влияние на игры не измерено.",
+    "risk": "low",
+    "riskNote": "Не будет автоматических отчётов об энергоэффективности (важно скорее для ноутбуков).",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на Win10 22H2 и Win11 23H2 (на машине разработчика удалена).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Power Efficiency Diagnostics\\AnalyzeSystem", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Power Efficiency Diagnostics\\AnalyzeSystem", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool"
+    ]
+  },
+  {
+    "id": "tasks.cloudexperiencehost-off",
+    "category": "tasks",
+    "title": "Отключить задачу CloudExperienceHost",
+    "description": "Отключает задачу CreateObjectTask компонента CloudExperienceHost, связанного с экранами первоначальной настройки и предложениями «завершить настройку».",
+    "recommendation": "Для игр: эксперимент без доказанной пользы.",
+    "evidence": "experimental",
+    "evidenceNote": "Назначение задачи официально не документировано (COM-обработчик {E4544ABA-62BF-4C54-AAB2-EC246342626C}); её отключают популярные твикеры. Эффект не измерен.",
+    "risk": "low",
+    "riskNote": "Возможны проблемы с экранами настройки учётной записи Microsoft и OOBE-сценариями (не проверено).",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на Win11 23H2 (проверено), на Win10 22H2 — не проверено.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\CloudExperienceHost\\CreateObjectTask", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\CloudExperienceHost\\CreateObjectTask", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/ChrisTitusTech/winutil/blob/25.05.23/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "tasks.diskfootprint-off",
+    "category": "tasks",
+    "title": "Отключить диагностику DiskFootprint",
+    "description": "Отключает задачу DiskFootprint\\Diagnostics (disksnapshot.exe), собирающую сведения об операциях ввода-вывода хранилища.",
+    "recommendation": "Для игр: эксперимент; задачу Storage Sense в той же папке не трогать.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft (VDOT) отключает задачу Diagnostics в DiskFootprint. Проверено: запускает «disksnapshot.exe -z». Влияние на игры не измерено.",
+    "risk": "low",
+    "riskNote": "Функциональность не затрагивается (по имеющимся данным).",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на Win11 23H2 (проверено), на Win10 22H2 — по VDOT.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\DiskFootprint\\Diagnostics", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\DiskFootprint\\Diagnostics", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool"
+    ]
+  },
+  {
+    "id": "tasks.startupapp-off",
+    "category": "tasks",
+    "title": "Отключить оценку влияния автозагрузки",
+    "description": "Отключает задачу StartupAppTask, которая оценивает приложения автозагрузки и уведомляет, если их слишком много.",
+    "recommendation": "Для игр: эксперимент без пользы для FPS.",
+    "evidence": "experimental",
+    "evidenceNote": "Проверено: задача запускает «rundll32 Startupscan.dll,SusRunTask». Работает кратко и редко; измеримого эффекта нет.",
+    "risk": "low",
+    "riskNote": "В Диспетчере задач столбец «Влияние на запуск» может перестать обновляться.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на Win10 22H2 и Win11 23H2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\StartupAppTask", "enabled": false}
+    ],
+    "revert": [
+      {"type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\StartupAppTask", "enabled": true}
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/ChrisTitusTech/winutil/blob/25.05.23/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "tasks.pcapatchdb-off",
+    "category": "tasks",
+    "title": "Отключить обновление базы совместимости (НЕ включаем)",
+    "description": "Отключение задачи PcaPatchDbTask. В приложение не входит.",
+    "recommendation": "Для игр: не отключать — это не телеметрия.",
+    "evidence": "avoid",
+    "evidenceNote": "Проверено: задача выполняет «rundll32 PcaSvc.dll,PcaPatchSdbTask» с описанием «Updates compatibility database». Отключение не даёт ни приватности, ни производительности.",
+    "risk": "low",
+    "riskNote": "Старые программы могут не получить обновлённые исправления совместимости.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Есть на Win11 23H2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/ChrisTitusTech/winutil/blob/25.05.23/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "tasks.scheduled-defrag-off",
+    "category": "tasks",
+    "title": "Отключить оптимизацию дисков (НЕ включаем)",
+    "description": "Отключение задачи \\Microsoft\\Windows\\Defrag\\ScheduledDefrag. В приложение не входит.",
+    "recommendation": "Для игр: никогда не отключать на SSD — задача выполняет TRIM.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: при запуске по расписанию defrag для SSD выполняет оптимизацию и retrim раз в месяц; задача запускает «defrag.exe -c -h -o -$» (проверено). Отключение ухудшает долгосрочную производительность SSD. Рекомендация VDOT отключать её относится только к виртуальным машинам.",
+    "risk": "high",
+    "riskNote": "Без retrim SSD со временем медленнее записывает данные; HDD фрагментируются.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: задача включена, запуск раз в неделю (для SSD — retrim не чаще раза в месяц). Также нельзя ставить NTFS DisableDeleteNotify=1 (отключает TRIM).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/defrag",
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "tasks.component-cleanup-off",
+    "category": "tasks",
+    "title": "Отключить очистку компонентов (НЕ включаем)",
+    "description": "Отключение задачи \\Microsoft\\Windows\\Servicing\\StartComponentCleanup. В приложение не входит.",
+    "recommendation": "Для игр: не отключать — задача освобождает место от старых обновлений.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: «strongly recommends not disabling component cleanup»; задача удаляет заменённые компоненты через 30 дней после обновления.",
+    "risk": "medium",
+    "riskNote": "Папка WinSxS будет расти, занимая гигабайты.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Дефолт: включена.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/clean-up-the-winsxs-folder?view=windows-11"
+    ]
+  },
+  {
+    "id": "tasks.update-orchestrator-off",
+    "category": "tasks",
+    "title": "Отключить задачи обновлений (НЕ включаем)",
+    "description": "Отключение задач UpdateOrchestrator, WaaSMedic, WindowsUpdate. В приложение не входит.",
+    "recommendation": "Для игр: не отключать.",
+    "evidence": "avoid",
+    "evidenceNote": "Задачи обеспечивают установку обновлений безопасности; у многих дескриптор безопасности допускает изменение только SYSTEM, администратор получает «Отказано в доступе». Пользы для игр нет.",
+    "risk": "high",
+    "riskNote": "Пропуск обновлений безопасности; Windows может восстанавливать задачи.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Касается всех версий.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/troubleshoot/windows-client/installing-updates-features-roles/additional-resources-for-windows-update"
+    ]
+  },
+  {
+    "id": "tasks.ucpd-velocity-off",
+    "category": "tasks",
+    "title": "Отключить UCPD (НЕ включаем)",
+    "description": "Отключение задачи «UCPD velocity» и драйвера UCPD, чтобы писать защищённые параметры (TaskbarDa, ассоциации файлов). В приложение не входит.",
+    "recommendation": "Для игр: не трогать; виджеты отключаются политикой privacy.widgets-off.",
+    "evidence": "avoid",
+    "evidenceNote": "UCPD — защитный драйвер Windows, блокирующий изменение пользовательских предпочтений сторонними программами (ассоциации, некоторые параметры панели задач). Обход — отключение компонента защиты; документированная альтернатива для виджетов существует.",
+    "risk": "medium",
+    "riskNote": "Снижение защиты пользовательских настроек от вредоносного ПО; Windows может восстановить драйвер.",
+    "reboot": "reboot",
+    "os": ["win10", "win11"],
+    "osNote": "На машине разработчика: Services\\UCPD Start=1, задача \\Microsoft\\Windows\\AppxDeploymentClient\\UCPD velocity → UCPDMgr.exe.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://oofhours.com/2025/05/02/what-is-windows-11s-new-ucpd-feature/",
+      "https://ntlite.com/community/threads/error-5-access-is-denied-when-disabling-set-news-and-interests-taskbar-widget.4852/"
+    ]
+  },
+  {
+    "id": "tasks.defender-tasks-off",
+    "category": "tasks",
+    "title": "Отключить задачи Защитника (НЕ включаем)",
+    "description": "Отключение задач \\Microsoft\\Windows\\Windows Defender\\* (проверка по расписанию, обслуживание кэша, очистка). В приложение не входит.",
+    "recommendation": "Для игр: не отключать; плановая проверка выполняется при простое.",
+    "evidence": "avoid",
+    "evidenceNote": "Задачи поддерживают антивирусную защиту; влияние на игровые сессии не показано, так как проверки выполняются в простое.",
+    "risk": "medium",
+    "riskNote": "Снижение уровня защиты.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Касается всех версий.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/privacy/manage-connections-from-windows-operating-system-components-to-microsoft-services"
+    ]
+  },
+  {
+    "id": "tasks.system-restore-off",
+    "category": "tasks",
+    "title": "Отключить точки восстановления по расписанию (НЕ включаем)",
+    "description": "Отключение задачи \\Microsoft\\Windows\\SystemRestore\\SR. В приложение не входит.",
+    "recommendation": "Для игр: не отключать — точки восстановления пригодятся при откате твиков и драйверов.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft VDOT отключает SR только для VDI. На игровом ПК точки восстановления — страховка перед изменениями системы.",
+    "risk": "medium",
+    "riskNote": "Меньше точек восстановления для отката.",
+    "reboot": "none",
+    "os": ["win10", "win11"],
+    "osNote": "Касается всех версий.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool"
+    ]
+  }
+]

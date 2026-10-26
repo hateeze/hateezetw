@@ -1,0 +1,56 @@
+{
+  "ADDL_VERSION": "1.0",
+  "DLL_URL": "NA",
+  "Consumer_Whql_Win10": {
+    "version": "26.20.15.07-261015a-205306C-AMD-Software-Adrenalin-Edition",
+    "url": "https://www2.ati.com/drivers/installer/json/DrvDldDetails_Consumer_WHQL_Win11.json"
+  },
+  "Consumer_Legacy_Win10": {
+    "version": "23.19.25.01-260423a-201039C-AMD-Software-Adrenalin-Edition",
+    "url": "https://www2.ati.com/drivers/installer/json/DrvDldDetails_Consumer_Legacy_Win10.json"
+  },
+  "Consumer_Whql_Win7": {
+    "version": "21.09.13.02-220802a-382933C-RadeonSoftware",
+    "url": "https://www2.ati.com/drivers/installer/json/DrvDldDetails_Consumer_WHQL_Win7.json"
+  },
+  "Consumer_Whql_Win10_AllAsics": {
+    "version": "26.20.15.07-261015a-205306C-AMD-Software-Adrenalin-Edition",
+    "url": "https://www2.ati.com/drivers/installer/json/DrvDldDetails_Consumer_WHQL_Win11_c.json"
+  },
+  "Consumer_Maintenance_Win10": {
+    "version": "25.10.45.16-261009a-205305C-AMD-Software-Adrenalin-Edition",
+    "url": "https://www2.ati.com/drivers/installer/json/DrvDldDetails_Consumer_RDNA1_RDNA2_Win11.json"
+  },
+  "Consumer_Whql_Win10_productionASICs": {
+    "version": "26.20.15.07-261015a-205306C-AMD-Software-Adrenalin-Edition",
+    "url": "https://www2.ati.com/drivers/installer/json/DrvDldDetails_Consumer_WHQL_Win11_p.json"
+  },
+  "Workstation_Whql_Win10": {
+    "version": "26.10.36-260727a-203347C-AMD-Software-PRO-Edition",
+    "url": "https://www2.ati.com/drivers/installer/json/drvdlddetails_ws_whql_win11.json"
+  },
+  "Workstation_Whql_Win10_AllAsics": {
+    "version": "26.10.36-260727a-203347C-AMD-Software-PRO-Edition",
+    "url": "https://www2.ati.com/drivers/installer/json/drvdlddetails_ws_whql_win11_c.json"
+  },
+  "Workstation_Maintenance_Win10": {
+    "version": "23.19.23.11-250701a-196625C-AMD-Software-PRO-Edition",
+    "url": "https://www2.ati.com/drivers/installer/json/drvdlddetails_ws_maintenance_win11.json"
+  },
+  "Workstation_Whql_Win10_productionASICs": {
+    "version": "26.10.36-260727a-203347C-AMD-Software-PRO-Edition",
+    "url": "https://www2.ati.com/drivers/installer/json/drvdlddetails_ws_whql_win11_p.json"
+  },
+  "Workstation_Legacy_Win10": {
+    "version": "21.09.02-210415a",
+    "url": "https://www2.ati.com/drivers/installer/json/DrvDldDetails_WS_Legacy_Win10.json"
+  },
+  "Workstation_Whql_Win7": {
+    "version": "20.45.40-210224a",
+    "url": "https://www2.ati.com/drivers/installer/json/DrvDldDetails_WS_WHQL_Win7.json"
+  },
+  "Falcon_Whql_Win10": {
+    "version": "21.30.45.22",
+    "url": "https://www2.ati.com/drivers/installer/json/DrvDldDetails_BootCamp_WHQL_Win10.json"
+  }
+}

@@ -1,0 +1,1330 @@
+[
+  {
+    "id": "gaming.game-mode",
+    "category": "gaming",
+    "title": "Игровой режим (Game Mode)",
+    "description": "Пока запущена игра, Windows не ставит драйверы через Windows Update, не показывает уведомления о перезагрузке и отдаёт приоритет игре. По умолчанию включён.",
+    "recommendation": "Для игр: оставить включённым (по умолчанию). Выключать только для эксперимента, если ваши замеры 1% low с ним хуже.",
+    "evidence": "proven",
+    "evidenceNote": "Microsoft документирует: Game Mode блокирует установку драйверов и уведомления о перезагрузке от Windows Update во время игры. На средний FPS влияет слабо. Тесты на одной системе (i7-13700H + RTX 4060, MakeUseOf/iGeeks) дают разброс по 1% low: +9% в CS2 и до +48% в Forza Horizon 5 при открытых Edge/Discord, но −12% в 007 First Light (CPU-bound). Это не контролируемые исследования. Для двухчиплетных AMD X3D (7950X3D/9950X3D) Game Mode нужен для парковки ядер второго CCD.",
+    "risk": "low",
+    "riskNote": "Режим электропитания нельзя менять, пока Game Mode активен. В редких случаях Game Bar ошибочно считает игрой обычное приложение (например, Teams), что влияет на его производительность.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10 1703+ и Windows 11. Значение по умолчанию — отсутствует (= включено). AllowAutoGameMode — устаревший ключ Win10 1703/1709, на Win11 не нужен.",
+    "vendor": "any",
+    "kind": "select",
+    "options": [
+      {
+        "label": "Включён (по умолчанию Windows)",
+        "value": 1
+      },
+      {
+        "label": "Выключен (эксперимент)",
+        "value": 0
+      }
+    ],
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\GameBar",
+        "name": "AutoGameModeEnabled",
+        "valueType": "DWORD",
+        "value": "{{value}}",
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\GameBar",
+        "name": "AutoGameModeEnabled",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://support.xbox.com/en-US/help/games-apps/game-setup-and-play/use-game-mode-gaming-on-pc",
+      "https://www.elevenforum.com/t/turn-on-or-off-game-mode-in-windows-11.1447/",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/README.md",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json",
+      "https://learn.microsoft.com/en-us/microsoftteams/troubleshoot/teams-on-windows/performance-affected-when-teams-remembered-as-game"
+    ]
+  },
+  {
+    "id": "gaming.background-recording-off",
+    "category": "gaming",
+    "title": "Выключить фоновую запись игр",
+    "description": "Отключает «Записывать то, что произошло» (постоянный буфер последних секунд геймплея в Xbox Game Bar), который всё время кодирует видео во время игры.",
+    "recommendation": "Для игр: выключить, если не пользуетесь «записать последние 30 секунд» (Win+Alt+G).",
+    "evidence": "proven",
+    "evidenceNote": "Команда Xbox (Microsoft) прямо пишет, что фоновая запись, скорее всего, снизит производительность во всех играх, кроме систем с самыми мощными GPU, поэтому по умолчанию она выключена. На машине разработчика значение было включено (HistoricalCaptureEnabled=1).",
+    "risk": "low",
+    "riskNote": "Перестанет работать «Записать то, что произошло» (Win+Alt+G). Ручная запись (Win+Alt+R) и скриншоты остаются.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт Windows — выключено (значение 0 или отсутствует); revert удаляет значение.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "HistoricalCaptureEnabled",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "HistoricalCaptureEnabled",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://news.xbox.com/en-us/2016/10/14/tips-on-windows-10-and-game-dvr-optimization",
+      "https://www.elevenforum.com/t/enable-or-disable-record-what-happened-for-gaming-captures-in-windows-11.17900/"
+    ]
+  },
+  {
+    "id": "gaming.game-dvr-off",
+    "category": "gaming",
+    "title": "Отключить Game DVR (захват Game Bar)",
+    "description": "Выключает подсистему захвата игр Xbox Game Bar (запись клипов и скриншотов через Game Bar) для текущего пользователя.",
+    "recommendation": "Для игр: выключить, если вы записываете через OBS/ShadowPlay/ReLive. Не трогать на AMD Ryzen 9 X3D с двумя CCD.",
+    "evidence": "situational",
+    "evidenceNote": "Помогает, если захват реально работал (фоновая запись, клипы, оверлей открывается сам). Если фоновая запись уже выключена, выигрыш по FPS не измерен — меняется только то, что DVR-компоненты не подключаются к игре. Рекомендовано PC-Tuning как временное отключение Game Bar.",
+    "risk": "low",
+    "riskNote": "Не работают запись и скриншоты Game Bar (Win+Alt+R, Win+Alt+PrtScn). Без Game Bar нельзя отметить «Запомнить, что это игра», поэтому Game Mode может не распознать новую игру. Для 7950X3D/9950X3D (парковка ядер по Game Mode) отключать не рекомендуется.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: AppCaptureEnabled=1, GameDVR_Enabled=1. На Win11 нет переключателя «Включить Game Bar» в Параметрах — только эти значения или удаление приложения Xbox Game Bar.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "AppCaptureEnabled",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_Enabled",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR",
+        "name": "AppCaptureEnabled",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_Enabled",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/README.md",
+      "https://www.powershellgallery.com/packages/gamedvr-fso-disabler/1.0.2/Content/gamedvr-fso-disabler.ps1",
+      "https://news.xbox.com/en-us/2016/10/14/tips-on-windows-10-and-game-dvr-optimization"
+    ]
+  },
+  {
+    "id": "gaming.game-dvr-policy-off",
+    "category": "gaming",
+    "title": "Запретить Game DVR политикой",
+    "description": "Групповая политика «Запись и трансляция игр Windows» = Отключено (AllowGameDVR=0). Действует для всех пользователей ПК и не даёт включить запись из интерфейса.",
+    "recommendation": "Для игр: нужно только если запись включается сама или на ПК несколько пользователей; иначе достаточно «Отключить Game DVR».",
+    "evidence": "situational",
+    "evidenceNote": "Сама политика производительность не повышает — она лишь принудительно держит выключенным то же, что выключает пользовательский твик. Соответствие ключа подтверждено на этой машине: HKLM\\SOFTWARE\\Microsoft\\PolicyManager\\default\\ApplicationManagement\\AllowGameDVR → GPBlockingRegKeyPath=Software\\Policies\\Microsoft\\Windows\\GameDVR, AllowGameDVR.",
+    "risk": "low",
+    "riskNote": "В Параметрах появится «Некоторыми параметрами управляет ваша организация». Захват Game Bar недоступен никому.",
+    "reboot": "logoff",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11 (любые редакции — запись в реестр работает и на Home). Дефолт — ключа политики нет.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR",
+        "name": "AllowGameDVR",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR",
+        "name": "AllowGameDVR",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://www.powershellgallery.com/packages/gamedvr-fso-disabler/1.0.2/Content/gamedvr-fso-disabler.ps1"
+    ]
+  },
+  {
+    "id": "gaming.gamebar-presencewriter-off",
+    "category": "gaming",
+    "title": "Отключить GameBarPresenceWriter",
+    "description": "Популярный твик: ActivationType=0 в HKLM\\SOFTWARE\\Microsoft\\WindowsRuntime\\ActivatableClassId\\Windows.Gaming.GameBar.PresenceServer.Internal.PresenceWriter, чтобы не запускался GameBarPresenceWriter.exe.",
+    "recommendation": "Для игр: не применять. Если Game Bar мешает — отключите Game DVR или удалите приложение Xbox Game Bar.",
+    "evidence": "avoid",
+    "evidenceNote": "Замеров влияния на FPS/задержки нет; процесс пишет «присутствие» в Xbox (что вы играете) и запускается при старте игры. PC-Tuning сообщает лишь, что без него Game Mode и Game Bar у автора работали.",
+    "risk": "medium",
+    "riskNote": "Ключ принадлежит TrustedInstaller (проверено на 23H2: Owner = NT SERVICE\\TrustedInstaller, ActivationType=1). Для записи нужно менять владельца или ACL системного ключа — это ослабляет защиту и может сломаться после обновлений. Статус Xbox «в игре» перестанет обновляться.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Ключ есть на Win10 и Win11 (проверено на 22631).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/registry-opts.md"
+    ]
+  },
+  {
+    "id": "gaming.fso-global-off",
+    "category": "gaming",
+    "title": "Отключить оптимизации во весь экран глобально",
+    "description": "Значения GameConfigStore, которые просят Windows честно выдавать DX9–DX11 играм эксклюзивный полноэкранный режим (Hardware: Legacy Flip) вместо «оптимизаций во весь экран» (FSO).",
+    "recommendation": "Для игр: не включать по умолчанию. Пробовать точечно для старой DX9/DX11 игры (лучше галочкой на конкретном exe) и проверять PresentMon.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft (DirectX blog, 2019): по телеметрии FSO в среднем не хуже настоящего FSE. Значения недокументированы, и источники расходятся в их смысле. PC-Tuning приводит их только как запасной способ получить Legacy Flip, если галочка на exe не помогла. Для DX12 и Vulkan эффекта не ожидается (НЕ ПРОВЕРЕНО по всем играм).",
+    "risk": "low",
+    "riskNote": "Медленнее Alt+Tab, мерцание при переключении, перестают работать оверлей Game Bar, Auto HDR и часть функций VRR/HDR в этих играх. Может конфликтовать с античитом/оверлеями, ожидающими FSO.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Win10 1803+/Win11. Дефолт Windows (совпадает с прочитанным на 22631): GameDVR_FSEBehaviorMode=2, GameDVR_HonorUserFSEBehaviorMode=0, GameDVR_DXGIHonorFSEWindowsCompatible=0, GameDVR_FSEBehavior отсутствует.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_FSEBehaviorMode",
+        "valueType": "DWORD",
+        "value": 2,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_HonorUserFSEBehaviorMode",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_FSEBehavior",
+        "valueType": "DWORD",
+        "value": 2,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_DXGIHonorFSEWindowsCompatible",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_FSEBehaviorMode",
+        "valueType": "DWORD",
+        "value": 2,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_HonorUserFSEBehaviorMode",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_FSEBehavior",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "System\\GameConfigStore",
+        "name": "GameDVR_DXGIHonorFSEWindowsCompatible",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://devblogs.microsoft.com/directx/demystifying-full-screen-optimizations/",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/README.md",
+      "https://www.powershellgallery.com/packages/gamedvr-fso-disabler/1.0.2/Content/gamedvr-fso-disabler.ps1"
+    ]
+  },
+  {
+    "id": "gaming.background-apps-off",
+    "category": "gaming",
+    "title": "Запретить фоновые приложения (политика)",
+    "description": "Политика «Разрешить приложениям Windows работать в фоновом режиме» = Принудительно запретить (LetAppsRunInBackground=2). Касается только UWP/MSIX-приложений из Store, а не обычных .exe.",
+    "recommendation": "Для игр: включать на слабых ПК или если вы не пользуетесь Store-приложениями (новые Teams/Outlook, Phone Link, WhatsApp из Store).",
+    "evidence": "situational",
+    "evidenceNote": "Документированная политика Microsoft (Policy CSP Privacy/LetAppsRunInBackground). Освобождает немного RAM и CPU от фоновых задач UWP. Замеров влияния на FPS нет; на Win11 это единственный глобальный выключатель, так как в Параметрах его убрали.",
+    "risk": "medium",
+    "riskNote": "Microsoft предупреждает: у приложений связи перестанут приходить уведомления (сообщения, почта), может сломаться фоновая синхронизация почты. Затрагивает новые Teams/Outlook, Phone Link, Store-версии мессенджеров и фоновые загрузки приложения Xbox.",
+    "reboot": "logoff",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10 1703+ и Windows 11 (включая 23H2/24H2/25H2). Дефолт — значения нет (0 = пользователь решает). Устаревший пользовательский ключ Win10 BackgroundAccessApplications\\GlobalUserDisabled=1 на Win11 не рекомендуется (НЕ ПРОВЕРЕНО).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+        "name": "LetAppsRunInBackground",
+        "valueType": "DWORD",
+        "value": 2,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+        "name": "LetAppsRunInBackground",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/client-management/mdm/policy-csp-privacy#letappsruninbackground",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/registry-opts.md",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "graphics.hags",
+    "category": "graphics",
+    "title": "Аппаратное планирование GPU (HAGS)",
+    "description": "Переносит планирование работы GPU с CPU на планировщик внутри видеокарты (HwSchMode: 2 = вкл, 1 = выкл). Обязательно для DLSS Frame Generation.",
+    "recommendation": "Для игр: включить, если используете DLSS Frame Generation / Multi Frame Generation (RTX 40/50) или FSR 3 FG. Иначе оставить дефолт.",
+    "evidence": "situational",
+    "evidenceNote": "NVIDIA (Streamline SDK FAQ): DLSS Frame Generation требует включённого HAGS. AMD (GPUOpen, FSR 3.1): на RX 7000 под Windows 11 22H2+ HAGS «should be enabled» для генерации кадров FSR 3. Без генерации кадров Microsoft прямо пишет, что пользователь не должен заметить существенных изменений. Регрессий в среднем нет, но встречаются жалобы на статтеры, VR и стриминг.",
+    "risk": "medium",
+    "riskNote": "Нужна поддержка GPU и драйвера (WDDM 2.7+). У отдельных пользователей появляются статтеры, проблемы с VR/захватом/GameStream. Если GPU не поддерживает HAGS (D3DKMT HwSchSupported=0) или он заблокирован (BlockList DISABLE_HWSCH), значение игнорируется — не показывать твик.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10 2004 (19041)+ и Windows 11. Дефолт: на Win10 — выкл; на Win11 при поддержке драйвера — вкл (на 22631 + RTX 4060 HwSchMode отсутствует, D3DKMT WDDM_2_7_CAPS=0xB, dxdiag: Enabled:True). Revert удаляет HwSchMode (решает ОС/драйвер). Реальное состояние определять через D3DKMTQueryAdapterInfo(KMTQAITYPE_WDDM_2_7_CAPS=70), а не по реестру.",
+    "vendor": "any",
+    "kind": "select",
+    "options": [
+      {
+        "label": "Включено",
+        "value": 2
+      },
+      {
+        "label": "Выключено",
+        "value": 1
+      }
+    ],
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers",
+        "name": "HwSchMode",
+        "valueType": "DWORD",
+        "value": "{{value}}",
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers",
+        "name": "HwSchMode",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://devblogs.microsoft.com/directx/hardware-accelerated-gpu-scheduling/",
+      "https://developer.nvidia.com/rtx/streamline/get-started",
+      "https://devblogs.microsoft.com/directx/navigating-the-redesigned-graphics-settings-page/",
+      "https://gpuopen.com/learn/amd_fsr_3_1_release/",
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/d3dkmthk/ne-d3dkmthk-_kmtqueryadapterinfotype"
+    ]
+  },
+  {
+    "id": "graphics.windowed-optimizations",
+    "category": "graphics",
+    "title": "Оптимизации для игр в оконном режиме",
+    "description": "Windows 11 переводит DX10/DX11 игры в окне и в «окне без рамки» со старой blt-модели вывода на flip-модель: меньше задержка кадра, работают VRR и Auto HDR.",
+    "recommendation": "Для игр: включить, если играете в DX10/DX11 игры в окне или в borderless. На DX12/Vulkan не влияет.",
+    "evidence": "proven",
+    "evidenceNote": "Microsoft (поддержка и DirectX blog): заметно снижает задержку в DX10/DX11 играх в оконном и borderless режимах, затрагивает более 3000 игр. Flip-модель в borderless может сравняться с эксклюзивным полноэкранным режимом по задержке (Independent Flip).",
+    "risk": "low",
+    "riskNote": "В отдельных играх возможны разрывы кадра (tearing) или несовместимость. Тогда отключить для конкретной игры в «Параметры → Дисплей → Графика». Если включён Auto HDR, оптимизации включаются принудительно и выключить их можно только вместе с Auto HDR.",
+    "reboot": "none",
+    "os": [
+      "win11"
+    ],
+    "osNote": "Windows 11 22H2+ (впервые в Insider 22557). Значение хранится внутри REG_SZ DirectXUserGlobalSettings вида \"SwapEffectUpgradeEnable=1;VRROptimizeEnable=0;\" — писать только слиянием пар, не перезаписывать строку. Дефолт на 22H2/23H2 — выкл (SwapEffectUpgradeEnable=0 или нет записи); дефолт на 24H2/25H2 НЕ ПРОВЕРЕН. Применяется при следующем запуске игры.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$p='HKCU:\\Software\\Microsoft\\DirectX\\UserGpuPreferences'; $n='DirectXUserGlobalSettings'; $k='SwapEffectUpgradeEnable'; $v='1'\nif (-not (Test-Path -LiteralPath $p)) { New-Item -Path $p | Out-Null }\n$cur = (Get-ItemProperty -LiteralPath $p -Name $n -ErrorAction SilentlyContinue).$n\n$pairs = New-Object System.Collections.Specialized.OrderedDictionary\nif ($cur) { foreach ($t in $cur.Split(';')) { if ($t -match '^\\s*([^=]+?)\\s*=\\s*(.*?)\\s*$') { $pairs[$matches[1]] = $matches[2] } } }\n$pairs[$k] = $v\n$s = ''; foreach ($e in $pairs.GetEnumerator()) { $s += ($e.Key + '=' + $e.Value + ';') }\nNew-ItemProperty -LiteralPath $p -Name $n -PropertyType String -Value $s -Force | Out-Null"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$p='HKCU:\\Software\\Microsoft\\DirectX\\UserGpuPreferences'; $n='DirectXUserGlobalSettings'; $k='SwapEffectUpgradeEnable'; $v='0'\nif (-not (Test-Path -LiteralPath $p)) { New-Item -Path $p | Out-Null }\n$cur = (Get-ItemProperty -LiteralPath $p -Name $n -ErrorAction SilentlyContinue).$n\n$pairs = New-Object System.Collections.Specialized.OrderedDictionary\nif ($cur) { foreach ($t in $cur.Split(';')) { if ($t -match '^\\s*([^=]+?)\\s*=\\s*(.*?)\\s*$') { $pairs[$matches[1]] = $matches[2] } } }\n$pairs[$k] = $v\n$s = ''; foreach ($e in $pairs.GetEnumerator()) { $s += ($e.Key + '=' + $e.Value + ';') }\nNew-ItemProperty -LiteralPath $p -Name $n -PropertyType String -Value $s -Force | Out-Null"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$v = (Get-ItemProperty -LiteralPath 'HKCU:\\Software\\Microsoft\\DirectX\\UserGpuPreferences' -Name DirectXUserGlobalSettings -ErrorAction SilentlyContinue).DirectXUserGlobalSettings\n[bool]($v -match '(^|;)\\s*SwapEffectUpgradeEnable\\s*=\\s*1\\s*(;|$)')",
+      "equals": "True"
+    },
+    "sources": [
+      "https://support.microsoft.com/en-us/topic/3f006843-2c7e-4ed0-9a5e-f9389e535952",
+      "https://devblogs.microsoft.com/directx/updates-in-graphics-and-gaming/",
+      "https://www.elevenforum.com/t/turn-on-or-off-optimizations-for-windowed-games-in-windows-11.4943/",
+      "https://devblogs.microsoft.com/directx/dxgi-flip-model/"
+    ]
+  },
+  {
+    "id": "graphics.vrr-optimize",
+    "category": "graphics",
+    "title": "Переменная частота обновления (VRR) для DX11",
+    "description": "Переключатель «Переменная частота обновления» в «Графика → Дополнительно»: включает G-SYNC/FreeSync/Adaptive-Sync для полноэкранных DX11 игр, которые сами VRR не поддерживают.",
+    "recommendation": "Для игр: включить, только если у вас VRR-монитор и вы играете в старые DX11 игры без встроенной поддержки VRR.",
+    "evidence": "situational",
+    "evidenceNote": "Документированная функция Microsoft (Windows 10 1903+). По словам Microsoft, она лишь дополняет панели G-SYNC/FreeSync и их не заменяет. Без VRR-монитора и подходящего драйвера переключатель даже не показывается.",
+    "risk": "low",
+    "riskNote": "В редких играх возможны мерцание или скачки яркости на VA-панелях при VRR.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10 1903+ / Windows 11, нужен драйвер WDDM 2.6+ с поддержкой функции и VRR-монитор. Хранится в той же REG_SZ DirectXUserGlobalSettings (VRROptimizeEnable). Дефолт — 0.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$p='HKCU:\\Software\\Microsoft\\DirectX\\UserGpuPreferences'; $n='DirectXUserGlobalSettings'; $k='VRROptimizeEnable'; $v='1'\nif (-not (Test-Path -LiteralPath $p)) { New-Item -Path $p | Out-Null }\n$cur = (Get-ItemProperty -LiteralPath $p -Name $n -ErrorAction SilentlyContinue).$n\n$pairs = New-Object System.Collections.Specialized.OrderedDictionary\nif ($cur) { foreach ($t in $cur.Split(';')) { if ($t -match '^\\s*([^=]+?)\\s*=\\s*(.*?)\\s*$') { $pairs[$matches[1]] = $matches[2] } } }\n$pairs[$k] = $v\n$s = ''; foreach ($e in $pairs.GetEnumerator()) { $s += ($e.Key + '=' + $e.Value + ';') }\nNew-ItemProperty -LiteralPath $p -Name $n -PropertyType String -Value $s -Force | Out-Null"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$p='HKCU:\\Software\\Microsoft\\DirectX\\UserGpuPreferences'; $n='DirectXUserGlobalSettings'; $k='VRROptimizeEnable'; $v='0'\nif (-not (Test-Path -LiteralPath $p)) { New-Item -Path $p | Out-Null }\n$cur = (Get-ItemProperty -LiteralPath $p -Name $n -ErrorAction SilentlyContinue).$n\n$pairs = New-Object System.Collections.Specialized.OrderedDictionary\nif ($cur) { foreach ($t in $cur.Split(';')) { if ($t -match '^\\s*([^=]+?)\\s*=\\s*(.*?)\\s*$') { $pairs[$matches[1]] = $matches[2] } } }\n$pairs[$k] = $v\n$s = ''; foreach ($e in $pairs.GetEnumerator()) { $s += ($e.Key + '=' + $e.Value + ';') }\nNew-ItemProperty -LiteralPath $p -Name $n -PropertyType String -Value $s -Force | Out-Null"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$v = (Get-ItemProperty -LiteralPath 'HKCU:\\Software\\Microsoft\\DirectX\\UserGpuPreferences' -Name DirectXUserGlobalSettings -ErrorAction SilentlyContinue).DirectXUserGlobalSettings\n[bool]($v -match '(^|;)\\s*VRROptimizeEnable\\s*=\\s*1\\s*(;|$)')",
+      "equals": "True"
+    },
+    "sources": [
+      "https://devblogs.microsoft.com/directx/os-variable-refresh-rate/",
+      "https://devblogs.microsoft.com/directx/navigating-the-redesigned-graphics-settings-page/",
+      "https://www.elevenforum.com/t/enable-or-disable-variable-refresh-rate-for-games-in-windows-11.12052/"
+    ]
+  },
+  {
+    "id": "graphics.mpo-disable",
+    "category": "graphics",
+    "title": "Отключить MPO (многоплоскостные оверлеи)",
+    "description": "OverlayTestMode=5 запрещает DWM использовать аппаратные плоскости наложения. Классическое лечение мерцания, чёрных вспышек и рывков в окнах (браузер, Discord) поверх игры или на втором мониторе.",
+    "recommendation": "Для игр: применять только при мерцании, чёрных вспышках или статтерах в окнах. Без проблем не трогать.",
+    "evidence": "situational",
+    "evidenceNote": "Решение из статьи поддержки NVIDIA 5157 (мерцание и статтер у части систем после драйвера 461.09). Статический анализ BoosterX: DWM читает значение и на 24H2/25H2, но замеров FPS и задержки нет. Есть много противоречивых отчётов, что на 24H2+ значение может не действовать. Проверять PresentMon: у игры в окне должен пропасть режим «Hardware Composed: Independent Flip».",
+    "risk": "medium",
+    "riskNote": "Окна и borderless-игры теряют аппаратные пути Independent Flip/MPO. Это даёт больше работы для DWM, возможный рост задержки в borderless и рост энергопотребления при видео. У одного пользователя после отключения MPO вылетала игра. dxdiag («MPO MaxPlanes») продолжает показывать возможности драйвера и не подтверждает, что MPO выключен.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Win10 1709+/Win11. На 24H2/25H2 эффективность спорна (см. отдельный экспериментальный твик DisableOverlays). Дефолт — значения нет. На машине разработчика (22631) уже установлено OverlayTestMode=5.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows\\Dwm",
+        "name": "OverlayTestMode",
+        "valueType": "DWORD",
+        "value": 5,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows\\Dwm",
+        "name": "OverlayTestMode",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://nvidia.custhelp.com/app/answers/detail/a_id/5157",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/README.md",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json",
+      "https://wiki.boosterx.org/en/windows-research/graphics/multiplane-overlay/",
+      "https://forums.guru3d.com/threads/disabling-mpo-multiplane-overlay-in-2025.455222/"
+    ]
+  },
+  {
+    "id": "graphics.mpo-disable-overlays",
+    "category": "graphics",
+    "title": "MPO: DisableOverlays (Win11 25H2+)",
+    "description": "Дополнительное значение GraphicsDrivers\\DisableOverlays=1, которое некоторые утилиты (winutil «Fully Disabled», Winhance) ставят вместе с OverlayTestMode для новых сборок Windows 11, где одного OverlayTestMode якобы мало.",
+    "recommendation": "Для игр: только если OverlayTestMode=5 не убрал мерцание на 24H2/25H2, и проверять PresentMon.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft значение не документирует. Действие подтверждается лишь отдельными отчётами пользователей 25H2 (Guru3D) и поведением утилит, независимых замеров нет. Один пользователь сообщал, что значение не действует.",
+    "risk": "medium",
+    "riskNote": "Есть сообщения о сломанном VRR и о вылетах игр с выключенным MPO. Последствия на уровне драйверного стека не изучены (НЕ ПРОВЕРЕНО).",
+    "reboot": "reboot",
+    "os": [
+      "win11"
+    ],
+    "osNote": "Целевое — Windows 11 24H2/25H2 (26100/26200). Дефолт — значения нет.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers",
+        "name": "DisableOverlays",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers",
+        "name": "DisableOverlays",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json",
+      "https://github.com/memstechtips/Winhance/issues/494",
+      "https://forums.guru3d.com/threads/disabling-mpo-multiplane-overlay-in-2025.455222/"
+    ]
+  },
+  {
+    "id": "graphics.hvci-off",
+    "category": "graphics",
+    "title": "Отключить «Целостность памяти» (HVCI)",
+    "description": "Выключает Memory Integrity (HVCI): проверка кода драйверов ядра внутри изолированной среды VBS. Стоит до нескольких процентов FPS в CPU-зависимых играх.",
+    "recommendation": "Для игр: НЕ отключать, если играете в Valorant/LoL (Vanguard) или на FACEIT. Отключать осознанно, только на ПК без этих античитов.",
+    "evidence": "situational",
+    "evidenceNote": "Tom's Hardware (Win11, RTX 3090, 1080p): VBS+HVCI в среднем −3…−6% FPS (Ryzen 7 5800X ≈ −3…−4%, Core i7-11700K ≈ −5…−6%). Microsoft сама предлагала отключать HVCI и VMP на время игры. На CPU с MBEC/GMET (Intel 7-го поколения+, AMD Zen 2+) потери меньше, на старых CPU без них — больше. В GPU-bound сценариях разницы почти нет.",
+    "risk": "high",
+    "riskNote": "Снижается защита ядра от вредоносных драйверов. Vanguard может потребовать HVCI (ошибка VAN: RESTRICTION 5), FACEIT требует VBS/IOMMU у части игроков и может потребовать Memory Integrity. Windows Security будет показывать предупреждение. Если HVCI включён с UEFI-блокировкой (Locked=1) или групповой политикой, твик не сработает — проверять до применения.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Win10 1607+/Win11. Дефолт: на Win11 при чистой установке на совместимом железе — ВКЛ, на апгрейдах и Win10 — выкл. Revert ставит Enabled=1 (как переключатель в Windows Security), но перед этим приложение должно убедиться, что раньше HVCI работал: запись в обход проверки совместимости драйверов может дать BSOD при загрузке. Реальный статус смотреть в Win32_DeviceGuard.SecurityServicesRunning (2 = HVCI работает).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity",
+        "name": "Enabled",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity",
+        "name": "Enabled",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$dg = Get-CimInstance -Namespace root\\Microsoft\\Windows\\DeviceGuard -ClassName Win32_DeviceGuard -ErrorAction SilentlyContinue\n[bool](-not ($dg.SecurityServicesRunning -contains 2))",
+      "equals": "True"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/security/hardware-security/enable-virtualization-based-protection-of-code-integrity",
+      "https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/oem-hvci-enablement",
+      "https://www.tomshardware.com/news/windows-11-gaming-benchmarks-performance-vbs-hvci-security",
+      "https://web.archive.org/web/20250818091118/https://support.microsoft.com/en-us/windows/options-to-optimize-gaming-performance-in-windows-11-a255f612-2949-4373-a566-ff6f3f474613",
+      "https://support.riotgames.com/en-us/riot/penalties/error-van-restriction-5",
+      "https://support.riotgames.com/en-us/riot/performance/vanguard-security-requirements",
+      "https://support.faceit.com/hc/en-us/articles/22851956652956-Known-issues-with-Anti-Cheat-Requirements",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/README.md"
+    ]
+  },
+  {
+    "id": "graphics.vbs-off",
+    "category": "graphics",
+    "title": "Отключить VBS полностью",
+    "description": "Выключает безопасность на основе виртуализации (EnableVirtualizationBasedSecurity=0) вместе с HVCI. Сработает, только если не включены Hyper-V, Платформа виртуальной машины (WSL2/WSA), Песочница и Credential Guard.",
+    "recommendation": "Для игр: не трогать при Valorant/FACEIT. На «чисто игровом» ПК без WSL/Hyper-V можно применить ради нескольких % FPS в CPU-bound играх.",
+    "evidence": "situational",
+    "evidenceNote": "Те же замеры Tom's Hardware (≈ −4…−5% среднего FPS при включённом VBS). PC-Tuning: VBS снижает производительность, но его нельзя выключить, пока работают Memory Integrity, VMP, Hyper-V или Sandbox. На машине разработчика EnableVirtualizationBasedSecurity=0, но VirtualizationBasedSecurityStatus=2 (VBS работает), потому что включены Hyper-V, VMP и WSL.",
+    "risk": "high",
+    "riskNote": "Ослабляется защита. FACEIT требует VBS у части игроков (вместе с IOMMU против DMA-читов), Vanguard проверяет HVCI/VBS. Твик бессилен, пока включены Hyper-V/VMP/WSL2/Sandbox/Credential Guard: приложение должно это показать.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Win10/Win11. Дефолт: значение задаётся установкой/OEM (на чистой Win11 на совместимом железе VBS обычно включён). Revert удаляет EnableVirtualizationBasedSecurity (решает Windows) и возвращает HVCI Enabled=1 — с той же оговоркой, что у graphics.hvci-off.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\DeviceGuard",
+        "name": "EnableVirtualizationBasedSecurity",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity",
+        "name": "Enabled",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\DeviceGuard",
+        "name": "EnableVirtualizationBasedSecurity",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      },
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity",
+        "name": "Enabled",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$dg = Get-CimInstance -Namespace root\\Microsoft\\Windows\\DeviceGuard -ClassName Win32_DeviceGuard -ErrorAction SilentlyContinue\n[bool]($dg.VirtualizationBasedSecurityStatus -ne 2)",
+      "equals": "True"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/security/hardware-security/enable-virtualization-based-protection-of-code-integrity",
+      "https://www.tomshardware.com/news/windows-11-gaming-benchmarks-performance-vbs-hvci-security",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/README.md",
+      "https://support.faceit.com/hc/en-us/articles/23117181142556",
+      "https://support.riotgames.com/en-us/riot/performance/vanguard-security-requirements"
+    ]
+  },
+  {
+    "id": "graphics.vmp-off",
+    "category": "graphics",
+    "title": "Отключить «Платформу виртуальной машины»",
+    "description": "Отключает компонент Windows VirtualMachinePlatform (нужен WSL2, Windows Subsystem for Android, Docker). Microsoft называла его среди того, что может снижать игровую производительность.",
+    "recommendation": "Для игр: отключить, если не пользуетесь WSL2/Android-приложениями/Docker. Не поможет, если включён Hyper-V.",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft («Options to optimize gaming performance in Windows 11»): в некоторых конфигурациях Memory Integrity и VMP снижают производительность, их можно выключить на время игры. Отдельных замеров только VMP (без HVCI) не найдено.",
+    "risk": "medium",
+    "riskNote": "Перестанут работать WSL2, Android-подсистема, Docker Desktop (WSL2 backend). Если включены Hyper-V или Sandbox, гипервизор всё равно загружается. Revert включает компонент обратно: по умолчанию Windows он выключен и появляется только после установки WSL2 и подобного, поэтому revert восстанавливает состояние «до твика».",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10 2004+/Windows 11. Требует DISM (Get/Disable-WindowsOptionalFeature), выполнение 10–60 с.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$f = Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -ErrorAction SilentlyContinue\nif ($f -and $f.State -eq 'Enabled') { Disable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -NoRestart -WarningAction SilentlyContinue | Out-Null }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$f = Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -ErrorAction SilentlyContinue\nif ($f -and $f.State -ne 'Enabled') { Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -NoRestart -WarningAction SilentlyContinue | Out-Null }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "[bool]((Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -ErrorAction SilentlyContinue).State -ne 'Enabled')",
+      "equals": "True"
+    },
+    "sources": [
+      "https://web.archive.org/web/20250818091118/https://support.microsoft.com/en-us/windows/options-to-optimize-gaming-performance-in-windows-11-a255f612-2949-4373-a566-ff6f3f474613",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/README.md"
+    ]
+  },
+  {
+    "id": "graphics.transparency-off",
+    "category": "graphics",
+    "title": "Отключить эффекты прозрачности",
+    "description": "Выключает акриловую и прозрачную подложку панели задач, меню «Пуск» и окон (Параметры → Персонализация → Цвета → Эффекты прозрачности).",
+    "recommendation": "Для игр: по желанию. Имеет смысл на слабых iGPU и ноутбуках, на игровой FPS не влияет.",
+    "evidence": "experimental",
+    "evidenceNote": "PC-Tuning приводит собственный бенчмарк «небольшой накладной расход CPU». Влияния на FPS в игре нет: в полноэкранной игре DWM почти не композитит. Эффект — меньше нагрузки на DWM при работе с рабочим столом.",
+    "risk": "low",
+    "riskNote": "Только внешний вид.",
+    "reboot": "explorer",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10 1607+/Windows 11. Дефолт EnableTransparency=1. Чтобы применить без перезапуска Explorer, после записи разослать WM_SETTINGCHANGE с lParam=\"ImmersiveColorSet\".",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        "name": "EnableTransparency",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+        "name": "EnableTransparency",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/registry-opts.md"
+    ]
+  },
+  {
+    "id": "graphics.visual-effects-performance",
+    "category": "graphics",
+    "title": "Отключить анимации и тени интерфейса",
+    "description": "Выключает анимации окон, меню, списков и подсказок, тени окон и курсора, анимации панели задач и Aero Peek через SystemParametersInfo. Сглаживание шрифтов и эскизы остаются.",
+    "recommendation": "Для игр: по желанию. Окна и Alt+Tab ощущаются отзывчивее, FPS не меняется.",
+    "evidence": "situational",
+    "evidenceNote": "PC-Tuning: отключение анимаций повышает субъективную отзывчивость при работе в Windows. Влияния на игровые FPS и задержку нет. Raymond Chen (Microsoft): запись одного VisualFXSetting ничего не меняет, настройки применяются только через SystemParametersInfo — поэтому твик сделан скриптом.",
+    "risk": "low",
+    "riskNote": "Только внешний вид. Без теней окна хуже видны на однотонном фоне. Анимация панели задач, ListviewShadow и Aero Peek применяются после перезапуска Explorer.",
+    "reboot": "explorer",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Revert = «Восстановить значения по умолчанию»: берёт DefaultValue из HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects\\<эффект> и удаляет VisualFXSetting. Если скрипт запускается от администратора другого аккаунта, HKCU и SPI относятся к нему — запускать в контексте вошедшего пользователя.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$sig = @'\nusing System; using System.Runtime.InteropServices;\npublic static class HzSpi {\n  [StructLayout(LayoutKind.Sequential)] public struct ANIMATIONINFO { public uint cbSize; public int iMinAnimate; }\n  [DllImport(\"user32.dll\", SetLastError=true)] public static extern bool SystemParametersInfo(uint a, uint u, IntPtr p, uint f);\n  [DllImport(\"user32.dll\", SetLastError=true)] public static extern bool SystemParametersInfo(uint a, uint u, ref ANIMATIONINFO p, uint f);\n  public static void SetBoolPv(uint a, bool on) { SystemParametersInfo(a, 0, on ? new IntPtr(1) : IntPtr.Zero, 3); }\n  public static void SetBoolUi(uint a, bool on) { SystemParametersInfo(a, on ? 1u : 0u, IntPtr.Zero, 3); }\n  public static void SetMinMax(bool on) { var ai = new ANIMATIONINFO(); ai.cbSize = 8; ai.iMinAnimate = on ? 1 : 0; SystemParametersInfo(0x49, 8, ref ai, 3); }\n}\n'@\nif (-not ('HzSpi' -as [type])) { Add-Type -TypeDefinition $sig }\n[HzSpi]::SetMinMax($false)                 # AnimateMinMax (SPI_SETANIMATION 0x49)\n[HzSpi]::SetBoolPv(0x1043, $false)          # ControlAnimations (SPI_SETCLIENTAREAANIMATION)\n[HzSpi]::SetBoolPv(0x1005, $false)          # ComboBoxAnimation\n[HzSpi]::SetBoolPv(0x1007, $false)          # ListBoxSmoothScrolling\n[HzSpi]::SetBoolPv(0x1003, $false)          # MenuAnimation\n[HzSpi]::SetBoolPv(0x1015, $false)          # SelectionFade\n[HzSpi]::SetBoolPv(0x1017, $false)          # TooltipAnimation\n[HzSpi]::SetBoolPv(0x101B, $false)          # CursorShadow\n[HzSpi]::SetBoolPv(0x1025, $false)          # DropShadow\n$adv='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced'\nNew-ItemProperty -LiteralPath $adv -Name TaskbarAnimations -PropertyType DWord -Value 0 -Force | Out-Null\nNew-ItemProperty -LiteralPath $adv -Name ListviewAlphaSelect -PropertyType DWord -Value 0 -Force | Out-Null\nNew-ItemProperty -LiteralPath $adv -Name ListviewShadow -PropertyType DWord -Value 0 -Force | Out-Null\nNew-ItemProperty -LiteralPath 'HKCU:\\Software\\Microsoft\\Windows\\DWM' -Name EnableAeroPeek -PropertyType DWord -Value 0 -Force | Out-Null\n$vfx='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects'\nif (-not (Test-Path -LiteralPath $vfx)) { New-Item -Path $vfx | Out-Null }\nNew-ItemProperty -LiteralPath $vfx -Name VisualFXSetting -PropertyType DWord -Value 3 -Force | Out-Null"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$sig = @'\nusing System; using System.Runtime.InteropServices;\npublic static class HzSpi {\n  [StructLayout(LayoutKind.Sequential)] public struct ANIMATIONINFO { public uint cbSize; public int iMinAnimate; }\n  [DllImport(\"user32.dll\", SetLastError=true)] public static extern bool SystemParametersInfo(uint a, uint u, IntPtr p, uint f);\n  [DllImport(\"user32.dll\", SetLastError=true)] public static extern bool SystemParametersInfo(uint a, uint u, ref ANIMATIONINFO p, uint f);\n  public static void SetBoolPv(uint a, bool on) { SystemParametersInfo(a, 0, on ? new IntPtr(1) : IntPtr.Zero, 3); }\n  public static void SetBoolUi(uint a, bool on) { SystemParametersInfo(a, on ? 1u : 0u, IntPtr.Zero, 3); }\n  public static void SetMinMax(bool on) { var ai = new ANIMATIONINFO(); ai.cbSize = 8; ai.iMinAnimate = on ? 1 : 0; SystemParametersInfo(0x49, 8, ref ai, 3); }\n}\n'@\nif (-not ('HzSpi' -as [type])) { Add-Type -TypeDefinition $sig }\nfunction Get-Def([string]$name, [int]$fallback) { $k = 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects\\' + $name; $d = (Get-ItemProperty -LiteralPath $k -Name DefaultValue -ErrorAction SilentlyContinue).DefaultValue; if ($d -eq $null) { return $fallback } else { return [int]$d } }\n[HzSpi]::SetMinMax((Get-Def 'AnimateMinMax' 1) -ne 0)\n[HzSpi]::SetBoolPv(0x1043, (Get-Def 'ControlAnimations' 1) -ne 0)\n[HzSpi]::SetBoolPv(0x1005, (Get-Def 'ComboBoxAnimation' 1) -ne 0)\n[HzSpi]::SetBoolPv(0x1007, (Get-Def 'ListBoxSmoothScrolling' 1) -ne 0)\n[HzSpi]::SetBoolPv(0x1003, (Get-Def 'MenuAnimation' 1) -ne 0)\n[HzSpi]::SetBoolPv(0x1015, (Get-Def 'SelectionFade' 1) -ne 0)\n[HzSpi]::SetBoolPv(0x1017, (Get-Def 'TooltipAnimation' 1) -ne 0)\n[HzSpi]::SetBoolPv(0x101B, (Get-Def 'CursorShadow' 0) -ne 0)\n[HzSpi]::SetBoolPv(0x1025, (Get-Def 'DropShadow' 1) -ne 0)\n$adv='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced'\nNew-ItemProperty -LiteralPath $adv -Name TaskbarAnimations -PropertyType DWord -Value (Get-Def 'TaskbarAnimations' 1) -Force | Out-Null\nNew-ItemProperty -LiteralPath $adv -Name ListviewAlphaSelect -PropertyType DWord -Value (Get-Def 'ListviewAlphaSelect' 1) -Force | Out-Null\nNew-ItemProperty -LiteralPath $adv -Name ListviewShadow -PropertyType DWord -Value (Get-Def 'ListviewShadow' 1) -Force | Out-Null\nNew-ItemProperty -LiteralPath 'HKCU:\\Software\\Microsoft\\Windows\\DWM' -Name EnableAeroPeek -PropertyType DWord -Value (Get-Def 'DWMAeroPeekEnabled' 1) -Force | Out-Null\nRemove-ItemProperty -LiteralPath 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects' -Name VisualFXSetting -ErrorAction SilentlyContinue"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$adv = Get-ItemProperty -LiteralPath 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced' -ErrorAction SilentlyContinue\n$m = (Get-ItemProperty -LiteralPath 'HKCU:\\Control Panel\\Desktop\\WindowMetrics' -Name MinAnimate -ErrorAction SilentlyContinue).MinAnimate\n[bool](($adv.TaskbarAnimations -eq 0) -and ($m -eq '0'))",
+      "equals": "True"
+    },
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/README.md",
+      "https://devblogs.microsoft.com/oldnewthing/?p=1993",
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "cleanup.startup-delay-off",
+    "category": "cleanup",
+    "title": "Убрать задержку автозагрузки",
+    "description": "Отменяет искусственную задержку (порядка 10 с) перед запуском программ из автозагрузки после входа: StartupDelayInMSec=0 и WaitForIdleState=0.",
+    "recommendation": "Для игр: по желанию. Программы из автозагрузки (Discord, Steam) стартуют сразу, на FPS не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "Широко подтверждено пользователями (ElevenForum, Microsoft Q&A): на Win11 одного StartupDelayInMSec бывает мало, нужен ещё WaitForIdleState=0. Microsoft значения не документирует. Это ускорение старта рабочего стола, а не игровой твик.",
+    "risk": "low",
+    "riskNote": "Сразу после входа все программы автозагрузки стартуют одновременно: на HDD или слабом CPU рабочий стол может ненадолго «подвиснуть». Отдельные обновления Windows удаляют ключ Serialize, и твик приходится применять заново.",
+    "reboot": "logoff",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 8+/10/11. Дефолт — ключа Serialize и значений нет (revert удаляет оба). На машине разработчика уже стоит StartupDelayInMSec=0.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+        "name": "StartupDelayInMSec",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+        "name": "WaitForIdleState",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+        "name": "StartupDelayInMSec",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize",
+        "name": "WaitForIdleState",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://www.elevenforum.com/t/enable-or-disable-delay-of-running-startup-apps-in-windows-11.9144/"
+    ]
+  },
+  {
+    "id": "power.fast-startup-off",
+    "category": "power",
+    "title": "Отключить быстрый запуск",
+    "description": "При «Завершении работы» Windows не сохраняет ядро и драйверы в hiberfil.sys, а выключается полностью. Следующий старт — чистая загрузка ядра.",
+    "recommendation": "Для игр: отключить. Драйверы GPU и сети после «Завершения работы» инициализируются начисто, не нужно помнить о «Перезагрузке».",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft Learn: при быстром запуске ядро и загруженные драйверы сохраняются в hiberfil.sys и восстанавливаются, а не загружаются заново. Поэтому «Завершение работы» не сбрасывает состояние драйверов и не обнуляет аптайм. На FPS не влияет. PC-Tuning рекомендует чистые загрузки (S0/S5).",
+    "risk": "low",
+    "riskNote": "Холодный старт станет на несколько секунд дольше. Отключение не удаляет hiberfil.sys и не выключает гибернацию (это делает powercfg /h off).",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 8+/10/11. Дефолт HiberbootEnabled=1 (если гибернация включена). Действует со следующего «Завершения работы». На машине разработчика уже 0.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+        "name": "HiberbootEnabled",
+        "valueType": "DWORD",
+        "value": 0,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power",
+        "name": "HiberbootEnabled",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/kernel/distinguishing-fast-startup-from-wake-from-hibernation",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/README.md",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/registry-opts.md"
+    ]
+  },
+  {
+    "id": "graphics.tdr-off",
+    "category": "graphics",
+    "title": "Отключить TDR (TdrLevel=0)",
+    "description": "Популярный «фикс вылетов драйвера»: TdrLevel=0 / большой TdrDelay в GraphicsDrivers отключает восстановление зависшего GPU.",
+    "recommendation": "Для игр: не применять. При «драйвер перестал отвечать» искать причину: разгон, питание, драйвер.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: ключи TDR предназначены только для тестирования и отладки. Производительность не повышают.",
+    "risk": "high",
+    "riskNote": "С TdrLevel=0 зависание GPU превращается в полное зависание ПК вместо восстановления драйвера. Большой TdrDelay маскирует нестабильный разгон.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Все версии. Дефолт — значений нет (TdrDelay = 2 с).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/display/tdr-registry-keys"
+    ]
+  },
+  {
+    "id": "graphics.hags-blocklist-remove",
+    "category": "graphics",
+    "title": "Удалить BlockList DISABLE_HWSCH",
+    "description": "Совет с форумов: удалить HKLM\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers\\BlockList\\Kernel, чтобы принудительно включить HAGS на AMD/Intel.",
+    "recommendation": "Для игр: не применять. Обновите драйвер — поддержку HAGS решают Microsoft и вендор.",
+    "evidence": "avoid",
+    "evidenceNote": "Это системный список блокировок драйверов. На машине разработчика (22631) в нём есть Vendor=1002 (AMD) и Vendor=8086 (Intel) → DISABLE_HWSCH. Обход блокировки включает HAGS там, где Microsoft его выключила из-за проблем. Замеров пользы нет.",
+    "risk": "high",
+    "riskNote": "Возможны TDR, зависания, артефакты. Список может восстановиться с обновлением Windows.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Наблюдалось на Win11 23H2. Содержимое на 24H2/25H2 НЕ ПРОВЕРЕНО.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://forums.guru3d.com/goto/post?id=6139134"
+    ]
+  },
+  {
+    "id": "graphics.userpreferencesmask-raw",
+    "category": "graphics",
+    "title": "Запись UserPreferencesMask / VisualFXSetting напрямую",
+    "description": "Твики «Наилучшее быстродействие», которые пишут бинарную маску UserPreferencesMask (например 90 12 03 80 10 00 00 00) или только VisualFXSetting=2.",
+    "recommendation": "Для игр: не применять напрямую. Используйте твик «Отключить анимации и тени интерфейса» (через SystemParametersInfo).",
+    "evidence": "avoid",
+    "evidenceNote": "Raymond Chen (Microsoft): VisualFXSetting лишь запоминает выбранную радиокнопку и ничего не применяет. UserPreferencesMask — недокументированная битовая маска, и её раскладка различается между версиями (на 22631: у пользователя 9E1E078012000000, в .DEFAULT 9E3E038012000000). Пишут её через SPI, а прямая запись применяется только после выхода из системы и перезаписывается Explorer.",
+    "risk": "medium",
+    "riskNote": "Можно случайно выключить сглаживание шрифтов, клавиатурные подсказки и другие биты. Откат на «эталонную» маску неверен для другой версии Windows.",
+    "reboot": "logoff",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Все версии.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://devblogs.microsoft.com/oldnewthing/?p=1993",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "graphics.dwm-disable",
+    "category": "graphics",
+    "title": "Отключить DWM / композицию",
+    "description": "Старые твики, которые останавливают dwm.exe или отключают композицию (HKCU\\Software\\Microsoft\\Windows\\DWM Composition=0).",
+    "recommendation": "Для игр: не применять. В Windows 8+ DWM обязателен.",
+    "evidence": "avoid",
+    "evidenceNote": "С Windows 8 композицию отключить нельзя (PC-Tuning: в Windows 7 это делалось в sysdm.cpl, в 8+ опции нет). Принудительная остановка dwm.exe приводит к его перезапуску или к чёрному экрану. Современные flip-модели (Independent Flip) и так обходят композицию в играх.",
+    "risk": "high",
+    "riskNote": "Чёрный экран, сломанная оболочка.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 8+.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/README.md"
+    ]
+  },
+  {
+    "id": "amd.ulps-off",
+    "category": "amd",
+    "title": "AMD: отключить ULPS (EnableUlps=0)",
+    "description": "EnableUlps (DWORD) и EnableUlps_NA в ключе класса видеоадаптера AMD. ULPS — «сверхнизкое энергопотребление», которое усыпляет неактивный (второй) GPU.",
+    "recommendation": "Для игр: не применять на современных одиночных Radeon. Было актуально только для CrossFire и разгона нескольких карт в эпоху Catalyst.",
+    "evidence": "avoid",
+    "evidenceNote": "Все известные пользы (стабильность разгона в MSI Afterburner, «99% загрузки второго GPU») — из эпохи CrossFire 2013–2017. На одиночных RDNA2/3/4 замеров пользы нет, а в 2025 году на форумах сомневаются, читает ли драйвер этот флаг на десктопе вообще. AMD значение не документирует.",
+    "risk": "medium",
+    "riskNote": "На ноутбуках с гибридной графикой (iGPU + Radeon) dGPU перестаёт засыпать: батарея, нагрев, проблемы со сном и выходом из сна. Сбрасывается при каждой переустановке драйвера.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Все версии, только AMD. Дефолт EnableUlps=1.",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://pastebin.com/TRRZxBp1",
+      "https://rentry.co/AMDdebloatregistry",
+      "https://forums.guru3d.com/threads/radeonmod-tweak-utility.403389/"
+    ]
+  },
+  {
+    "id": "amd.thermal-throttling-off",
+    "category": "amd",
+    "title": "AMD: отключить термотроттлинг (PP_ThermalAutoThrottlingEnable=0)",
+    "description": "PowerPlay-параметр в ключе класса адаптера, отключающий автоматическое снижение частот при перегреве.",
+    "recommendation": "Для игр: никогда не применять.",
+    "evidence": "avoid",
+    "evidenceNote": "Даже авторы твик-дампов прямо пишут, что это защитный механизм и отключать его опасно. Пользы для FPS нет: при нормальном охлаждении троттлинга и так нет.",
+    "risk": "high",
+    "riskNote": "Перегрев GPU и VRM, деградация, аварийные отключения. Частоты будут ограничиваться всё равно (прошивка), но со снятыми мягкими порогами.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Только AMD. Дефолт 1.",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://pastebin.com/TRRZxBp1",
+      "https://rentry.co/AMDdebloatregistry"
+    ]
+  },
+  {
+    "id": "amd.compute-preemption-off",
+    "category": "amd",
+    "title": "AMD: KMD_EnableComputePreemption=0",
+    "description": "Отключает вытеснение (preemption) вычислительных задач GPU драйвером AMD.",
+    "recommendation": "Для игр: не применять.",
+    "evidence": "avoid",
+    "evidenceNote": "Замеров пользы нет. Вытеснение нужно планировщику Windows (особенно HAGS) для переключения между задачами, иначе долгие задачи блокируют рабочий стол и вызывают TDR. Microsoft требует preemption начиная с WDDM 1.2.",
+    "risk": "high",
+    "riskNote": "Подвисания интерфейса, TDR («драйвер перестал отвечать»), сбой HAGS и аппаратного декодирования видео.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Только AMD. Дефолт — значения нет (решает драйвер).",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://deepwiki.com/shoober420/windows11-scripts/3.3-amd-gpu-tweaks",
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/d3dkmthk/ne-d3dkmthk-_kmtqueryadapterinfotype"
+    ]
+  },
+  {
+    "id": "amd.dma-copy-off",
+    "category": "amd",
+    "title": "AMD: DisableDMACopy / DisableBlockWrite",
+    "description": "Недокументированные флаги в ключе класса адаптера AMD, которые советуют против статтеров на Polaris/Vega.",
+    "recommendation": "Для игр: не применять.",
+    "evidence": "avoid",
+    "evidenceNote": "Описания противоречат друг другу: «отключает DMA-копирование», «наоборот переносит копирование на DMA-движки». Автор дампа сам пишет, что флаг «вероятно для старых ПК». Замеров на RDNA нет.",
+    "risk": "medium",
+    "riskNote": "Неизвестное поведение копирования памяти: возможны статтеры, падение пропускной способности, артефакты.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Только AMD. Дефолт НЕ ПРОВЕРЕН (в одних дампах значения нет, в других 1).",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://pastebin.com/TRRZxBp1",
+      "https://rentry.co/AMDdebloatregistry",
+      "https://deepwiki.com/shoober420/windows11-scripts/3.3-amd-gpu-tweaks"
+    ]
+  },
+  {
+    "id": "amd.stutter-mode-off",
+    "category": "amd",
+    "title": "AMD: StutterMode=0",
+    "description": "StutterMode (DWORD 0/1/2) в ключе класса адаптера AMD. Это не «режим статтера», а энергосберегающий memory stutter: самообновление видеопамяти, пока дисплейный контроллер читает буфер.",
+    "recommendation": "Для игр: не применять. Название обманчиво — к игровым статтерам отношения не имеет.",
+    "evidence": "avoid",
+    "evidenceNote": "В open-source драйвере AMD (Linux amdgpu, amd_shared.h): PP_STUTTER_MODE — функция энергосбережения PowerPlay, а DC_DISABLE_STUTTER = «disable memory stutter mode». Отключение повышает потребление в простое. Замеров пользы для игр нет. Помогает только при мерцании на отдельных мониторах (НЕ ПРОВЕРЕНО на Windows).",
+    "risk": "medium",
+    "riskNote": "Рост энергопотребления и температуры VRAM в простое, возможны проблемы дисплея.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Только AMD. Дефолт по дампам: 2 на Vega (для RDNA НЕ ПРОВЕРЕНО).",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/torvalds/linux/blob/master/drivers/gpu/drm/amd/include/amd_shared.h",
+      "https://pastebin.com/TRRZxBp1"
+    ]
+  },
+  {
+    "id": "amd.umd-registry-settings",
+    "category": "amd",
+    "title": "AMD: прямое редактирование подключа UMD",
+    "description": "Запись глобальных настроек Radeon в ...\\000X\\UMD как BINARY UTF-16 строк (ShaderCache, Tessellation_OPTION, Tessellation, TFQ, VSyncControl, Main3D, FlipQueueSize, TurboSync).",
+    "recommendation": "Для игр: не писать в реестр. Те же настройки (кэш шейдеров, тесселяция, фильтрация, V-Sync, Enhanced Sync) задавать в AMD Software: Adrenalin Edition глобально или для игры.",
+    "evidence": "avoid",
+    "evidenceNote": "Формат и значения не документированы AMD и известны только по дампам 2016–2019 годов, которые противоречат друг другу (ShaderCache: 30 00 = выкл, 31 00 = AMD Optimized, 32 00 = «всегда»). Adrenalin хранит профили игр отдельно и перезаписывает UMD при изменении настроек. FlipQueueSize и Main3D — наследие DX9/DX11-драйвера, на DX12/Vulkan не действуют. Анти-лаг и Chill в UMD не найдены (НЕ ПРОВЕРЕНО).",
+    "risk": "medium",
+    "riskNote": "Неверный тип или длина значения ломают профиль. Запись в чужой подключ 000X (второй GPU или iGPU) ни на что не влияет. Всё сбрасывается при переустановке драйвера. TFQ=Performance и ограничение тесселяции ухудшают картинку.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Только AMD (Adrenalin). Подробности формата и C#-хелпер — в разделе AMD документа.",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://pastebin.com/TRRZxBp1",
+      "https://rentry.co/AMDdebloatregistry",
+      "https://forums.guru3d.com/threads/radeonmod-tweak-utility.403389/",
+      "https://www.amd.com/en/resources/support-articles/faqs/DH-012.html"
+    ]
+  },
+  {
+    "id": "amd.frtc-registry",
+    "category": "amd",
+    "title": "AMD: KMD_FRTEnabled / KMD_MaxFrameRateRequested",
+    "description": "Старый ограничитель кадров драйвера (Frame Rate Target Control) через реестр.",
+    "recommendation": "Для игр: не применять. Ограничивать FPS внутриигровым лимитом, Radeon Chill (min=max) или RTSS.",
+    "evidence": "avoid",
+    "evidenceNote": "FRTC убран из интерфейса Adrenalin и заменён Radeon Chill. Действует ли значение в новых драйверах — НЕ ПРОВЕРЕНО. Внутриигровой лимитер обычно даёт меньшую задержку.",
+    "risk": "low",
+    "riskNote": "Неожиданный глобальный лимит FPS во всех играх.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Только AMD. Дефолт KMD_FRTEnabled=0.",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://pastebin.com/TRRZxBp1",
+      "https://www.amd.com/en/resources/support-articles/faqs/DH-033.html"
+    ]
+  },
+  {
+    "id": "amd.external-events-service-off",
+    "category": "amd",
+    "title": "AMD: отключить службу AMD External Events Utility",
+    "description": "Служба «AMD External Events Utility» (atiesrxx.exe / atieclxx.exe), которую часто отключают как «лишнюю».",
+    "recommendation": "Для игр: не отключать, если используете FreeSync в оконном или borderless режиме.",
+    "evidence": "avoid",
+    "evidenceNote": "PC-Tuning прямо помечает её как «required for VRR». По отчётам пользователей AMD Community, без неё FreeSync в borderless/оконных играх не работает (в эксклюзивном полноэкранном — работает). Выигрыш от отключения не измерен.",
+    "risk": "medium",
+    "riskNote": "Сломается FreeSync в borderless. Возможны мерцание и разрывы, не работают горячие клавиши и события дисплея.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Только AMD. Дефолт — Автоматически.",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/configure-amd.md",
+      "https://community.amd.com/t5/pc-drivers-software/amd-external-events-utility-service/m-p/344821"
+    ]
+  },
+  {
+    "id": "amd.anti-lag-plus",
+    "category": "amd",
+    "title": "AMD: Anti-Lag+ в соревновательных играх",
+    "description": "Драйверный Anti-Lag+ (RX 7000) встраивался в игру перехватом функций DLL движка.",
+    "recommendation": "Для игр: не включать Anti-Lag+ в онлайн-играх с античитом. Использовать встроенный в игру Anti-Lag 2 (CS2 и др.) или обычный Radeon Anti-Lag.",
+    "evidence": "avoid",
+    "evidenceNote": "Октябрь 2023: Valve подтвердила VAC-баны в CS2 за Anti-Lag+ из-за подмены (detour) функций DLL движка. AMD отключила функцию драйвером и позже выпустила Anti-Lag 2 как SDK, встраиваемый разработчиком игры. Обычный Anti-Lag (драйверный, DX9/11/12) банов не вызывал.",
+    "risk": "high",
+    "riskNote": "Риск бана аккаунта античитом.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Только AMD RX 7000+. Это настройка Adrenalin, а не реестра; запись добавлена, чтобы такой твик не появился в приложении.",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://www.guru3d.com/story/amd-in-counterstrike-2-can-result-in-vac-ban",
+      "https://www.amd.com/en/products/software/adrenalin/radeon-software-anti-lag.html",
+      "https://gpuopen.com/anti-lag-2/"
+    ]
+  }
+]

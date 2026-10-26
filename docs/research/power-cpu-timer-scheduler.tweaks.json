@@ -1,0 +1,1986 @@
+[
+  {
+    "id": "power.hateeze-low-latency-scheme",
+    "category": "power",
+    "title": "Схема питания «hateeze Low Latency»",
+    "description": "Создаёт (или обновляет) схему на основе «Максимальной производительности» с выключенными USB selective suspend и USB 3 LPM и делает её активной. CPU не опускается ниже базовой частоты, парковка ядер, ASPM и энергосбережение AHCI/NVMe выключены.",
+    "recommendation": "Для игр: настольный ПК без X3D с двумя CCD и без Intel hybrid — включить. Ноутбукам и 7900X3D/7950X3D/9900X3D/9950X3D — не включать.",
+    "evidence": "situational",
+    "evidenceNote": "Ultimate = High performance на AC (единственное отличие — диск не засыпает), Microsoft описывает её как устранение микрозадержек управления питанием. Прирост среднего FPS не ожидается; польза — стабильные задержки при неполной загрузке и отсутствие «засыпания» USB. В Balanced Windows сама ставит CPU 100 % в профиле Game Mode. Схемы, не производные от Balanced, отключают PPM-профили/оверлеи — на dual-CCD X3D это ломает парковку CCD через Game Mode, на Intel hybrid не доказана польза.",
+    "risk": "low",
+    "riskNote": "Выше потребление и температура в простое; на ноутбуке — расход батареи. Не применять на X3D с двумя CCD и Intel hybrid. Откат: активировать предыдущую схему (приложение хранит её GUID) и удалить схему hateeze.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Win10 1803+ (Ultimate появилась в 1803; в не-Workstation редакциях шаблон скрыт, дублируется powercfg). На Modern Standby (S0ix) High/Ultimate могут быть недоступны — фолбэк: копия Balanced (НЕ ПРОВЕРЕНО). Фиксированный GUID схемы 3a66c45b-84b7-4327-bc45-26425f4d2a35.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$g = '3a66c45b-84b7-4327-bc45-26425f4d2a35'\nif (-not ((powercfg /l) -match $g)) { powercfg /duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 $g | Out-Null }\nif (-not ((powercfg /l) -match $g)) { powercfg /duplicatescheme 381b4222-f694-41f0-9685-ff5bb260df2e $g | Out-Null }\nif (-not ((powercfg /l) -match $g)) { throw 'hateeze: не удалось создать схему электропитания' }\npowercfg /changename $g 'hateeze Low Latency' 'Схема hateeze: минимальные задержки. Основа — «Максимальная производительность». Не для ноутбуков.' | Out-Null\n$v = @('54533251-82be-4824-96c1-47b60b740d00 893dee8e-2bef-41e0-89c6-b55d0929964c 100', '54533251-82be-4824-96c1-47b60b740d00 893dee8e-2bef-41e0-89c6-b55d0929964d 100', '54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 100', '54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583 100', '54533251-82be-4824-96c1-47b60b740d00 ea062031-0e34-4ff1-9b6d-eb1059334028 100', '54533251-82be-4824-96c1-47b60b740d00 be337238-0d82-4146-a960-4f3749d470c7 2', '54533251-82be-4824-96c1-47b60b740d00 45bcc044-d885-43e2-8605-ee0ec6e96b59 100', '54533251-82be-4824-96c1-47b60b740d00 36687f9e-e3a5-4dbf-b1dc-15eb381c6863 0', '54533251-82be-4824-96c1-47b60b740d00 36687f9e-e3a5-4dbf-b1dc-15eb381c6864 0', '54533251-82be-4824-96c1-47b60b740d00 5d76a2ca-e8c0-402f-a133-2158492d58ad 0', '54533251-82be-4824-96c1-47b60b740d00 94d3a615-a899-4ac5-ae2b-e4d8f634367f 1', '501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 0', '2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0', '2a737441-1930-4402-8d77-b2bebba308a3 d4e98f31-5ffe-4ce1-be31-1b38b384c009 0', '0012ee47-9041-4b5d-9b77-535fba8b1442 6738e2c4-e8a5-4a42-b16a-e040e769756e 0', '0012ee47-9041-4b5d-9b77-535fba8b1442 0b2d69d7-a2a1-449c-9680-f91c70521c60 0', '0012ee47-9041-4b5d-9b77-535fba8b1442 dab60367-53fe-4fbc-825e-521d069d2456 0', '0012ee47-9041-4b5d-9b77-535fba8b1442 fc95af4d-40e7-4b6d-835a-56d131dbc80e 0', '0012ee47-9041-4b5d-9b77-535fba8b1442 dbc9e238-6de9-49e3-92cd-8c2b4946b472 0', '238c9fa8-0aad-41ed-83f4-97be242c8f20 29f6c1db-86da-48c5-9fdb-f2b67b1f44da 0', '238c9fa8-0aad-41ed-83f4-97be242c8f20 9d7815a6-7ee4-497e-8888-515a05f02364 0', '19cbb8fa-5279-450e-9fac-8a3d5fedd0c1 12bbebe6-58d6-4636-95bb-3217ef867c1a 0', 'fea3413e-7e05-4911-9a71-700331f1c294 4faab71a-92e5-4726-b531-224559672d19 0')\nforeach ($l in $v) { $p = $l.Split(' '); powercfg /setacvalueindex $g $p[0] $p[1] $p[2] | Out-Null }\npowercfg /setactive $g | Out-Null"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$g = '3a66c45b-84b7-4327-bc45-26425f4d2a35'\nif ((powercfg /getactivescheme) -match $g) { powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e | Out-Null }\nif ((powercfg /l) -match $g) { powercfg /delete $g | Out-Null }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "[bool]((powercfg /getactivescheme) -match '3a66c45b-84b7-4327-bc45-26425f4d2a35')",
+      "equals": "True"
+    },
+    "sources": [
+      "https://blogs.windows.com/windows-insider/2018/02/14/announcing-windows-10-insider-preview-build-17101-fast-build-17604-skip-ahead/",
+      "https://learn.microsoft.com/en-us/windows/win32/api/powrprof/nf-powrprof-powerduplicatescheme",
+      "https://learn.microsoft.com/en-us/windows/win32/api/powersetting/",
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/configure-processor-power-management-options",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINPOWER/README.md",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/functions/public/Invoke-WPFUltimatePerformance.ps1",
+      "https://hwbusters.com/cpu/amd-ryzen-9-7950x3d-core-parking-problem-solution/"
+    ]
+  },
+  {
+    "id": "power.min-processor-state",
+    "category": "power",
+    "title": "Минимальное состояние процессора (от сети)",
+    "description": "Нижняя граница производительности CPU в активной схеме при питании от сети. 100 % — частота не опускается ниже базовой (на CPPC — 100 % от nominal), ядра в простое всё равно уходят в C-state.",
+    "recommendation": "Для игр: 100 % на настольном ПК. На ноутбуке не менять.",
+    "evidence": "situational",
+    "evidenceNote": "Ускоряет реакцию на нагрузку при неполной загрузке CPU. В High/Ultimate уже 100 % (AC); в Balanced Windows ставит 100 % в профилях GameMode и LowLatency (проверено powercfg /queryprofile на этой машине). Независимых замеров прироста FPS нет.",
+    "risk": "low",
+    "riskNote": "Повышенные потребление/температура/шум в простое, особенно на ноутбуках и Intel. От батареи (DC) значение не меняется.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт для revert — непровижиненный Balanced 5/5 (DefaultPowerSchemeValues). На этой машине эффективный Balanced AC = 0 % (ProvAcSettingIndex), High = 100/5. Приоритет — снапшот приложения.",
+    "vendor": "any",
+    "kind": "value",
+    "options": {
+      "min": 0,
+      "max": 100,
+      "default": 100
+    },
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "893dee8e-2bef-41e0-89c6-b55d0929964c",
+        "alias": "PROCTHROTTLEMIN",
+        "ac": "{{value}}",
+        "dc": 5
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "893dee8e-2bef-41e0-89c6-b55d0929964c",
+        "alias": "PROCTHROTTLEMIN",
+        "ac": 5,
+        "dc": 5
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/configure-processor-power-management-options",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINPOWER/README.md",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.core-parking-off",
+    "category": "power",
+    "title": "Отключить парковку ядер (от сети)",
+    "description": "CPMINCORES = 100 %: все логические процессоры остаются незапаркованными (по документации Microsoft 100 % отключает алгоритм парковки).",
+    "recommendation": "Для игр: обычно уже выключена на настольных ПК; не применять на Ryzen X3D с двумя CCD.",
+    "evidence": "situational",
+    "evidenceNote": "На Win11 23H2 (Zen 3, эта машина) Balanced/High/Ultimate уже имеют 100 % на AC (Balanced DC 10 %); на Win10 LTSC 2019 (Intel, djdallmann) — 100/100. Помогает только там, где OEM/драйвер включили парковку на AC. Проверка: счётчик Processor InformationParking Status.",
+    "risk": "medium",
+    "riskNote": "На 7900X3D/7950X3D/9900X3D/9950X3D парковка второго CCD — штатная оптимизация AMD для игр; её отключение снижает FPS. На Intel hybrid тоже часть стратегии планировщика.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = значения Balanced этой машины (100/10). На ноутбуках с другим провижинингом дефолт AC может быть ниже — НЕ ПРОВЕРЕНО, приоритет у снапшота.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "0cc5b647-c1df-4637-891a-dec35c318583",
+        "alias": "CPMINCORES",
+        "ac": 100,
+        "dc": 10
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "0cc5b647-c1df-4637-891a-dec35c318583",
+        "alias": "CPMINCORES",
+        "ac": 100,
+        "dc": 10
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/options-for-core-parking-cpmincores",
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/configure-processor-power-management-options",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv",
+      "https://hwbusters.com/cpu/amd-ryzen-9-7950x3d-core-parking-problem-solution/"
+    ]
+  },
+  {
+    "id": "power.boost-mode",
+    "category": "power",
+    "title": "Режим усиления (буста) процессора",
+    "description": "Как процессор выбирает частоту выше базовой. «Агрессивный» (2) — дефолт Windows во всех схемах; «Отключён» (0) убирает буст.",
+    "recommendation": "Для игр: «Агрессивный» (2). Никогда не ставить «Отключён».",
+    "evidence": "proven",
+    "evidenceNote": "Документировано Microsoft (PERFBOOSTMODE): для CPPC non-autonomous Enabled = целевой буст, Aggressive = максимальный. Дефолт 2/2 во всех стоковых схемах (проверено). Твик полезен как защита от «энергосберегающих» сборок, где буст выключен.",
+    "risk": "low",
+    "riskNote": "0 = буст выключен: минус 10–30 % однопоточной производительности.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Win11 23H2 показывает 7 вариантов (0–6), документация MS — 0–4; варианты 5/6 («при гарантированном») читать из ОС.",
+    "vendor": "any",
+    "kind": "select",
+    "options": [
+      {
+        "label": "0 — Отключён (не рекомендуется)",
+        "value": 0
+      },
+      {
+        "label": "1 — Включён",
+        "value": 1
+      },
+      {
+        "label": "2 — Агрессивный (рекомендуется, дефолт)",
+        "value": 2
+      },
+      {
+        "label": "3 — Эффективно включённый",
+        "value": 3
+      },
+      {
+        "label": "4 — Эффективно агрессивный",
+        "value": 4
+      }
+    ],
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "be337238-0d82-4146-a960-4f3749d470c7",
+        "alias": "PERFBOOSTMODE",
+        "ac": "{{value}}",
+        "dc": "{{value}}"
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "be337238-0d82-4146-a960-4f3749d470c7",
+        "alias": "PERFBOOSTMODE",
+        "ac": 2,
+        "dc": 2
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/options-for-perf-state-engine-perfboostmode",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.max-processor-state-99",
+    "category": "power",
+    "title": "Максимальное состояние процессора 99 % (антитвик)",
+    "description": "Популярный «твик для температуры»: PROCTHROTTLEMAX = 99 % фактически отключает турбобуст на многих системах.",
+    "recommendation": "Для игр: не применять. Держать 100 %.",
+    "evidence": "avoid",
+    "evidenceNote": "Снижает частоту до базовой: прямые потери производительности. Включено в каталог только как запрет.",
+    "risk": "high",
+    "riskNote": "Падение однопоточной частоты и FPS.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт 100/100 во всех стоковых схемах.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "bc5038f7-23e0-4960-96da-33abaf5935ec",
+        "alias": "PROCTHROTTLEMAX",
+        "ac": 100,
+        "dc": 100
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/configure-processor-power-management-options"
+    ]
+  },
+  {
+    "id": "power.epp-performance",
+    "category": "power",
+    "title": "EPP: приоритет производительности (от сети)",
+    "description": "Energy Performance Preference для CPU с CPPC v2 в автономном режиме (Intel HWP, AMD CPPC2): 0 — максимум производительности, 100 — экономия (регистр = значение·255/100).",
+    "recommendation": "Для игр: 0 на AC.",
+    "evidence": "situational",
+    "evidenceNote": "Документировано Microsoft (PerfEnergyPreference). Действует только при autonomous CPPC; на AMD Zen 3 под Windows поддержка НЕ ПРОВЕРЕНА. На этой машине AC уже 0 во всех схемах (Balanced — через провижининг).",
+    "risk": "low",
+    "riskNote": "Чуть выше потребление; от батареи значение не меняется.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = непровижиненный дефолт Balanced 33/50 (Win10 LTSC и DefaultPowerSchemeValues этой машины); эффективный Balanced на этой машине = 0/50 (ProvAcSettingIndex). Приоритет у снапшота.",
+    "vendor": "any",
+    "kind": "value",
+    "options": {
+      "min": 0,
+      "max": 100,
+      "default": 0
+    },
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "36687f9e-e3a5-4dbf-b1dc-15eb381c6863",
+        "alias": "PERFEPP",
+        "ac": "{{value}}",
+        "dc": 50
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "36687f9e-e3a5-4dbf-b1dc-15eb381c6863",
+        "alias": "PERFEPP",
+        "ac": 33,
+        "dc": 50
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/options-for-perf-state-engine-perfenergypreference",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.idle-disable",
+    "category": "power",
+    "title": "Отключить состояния простоя CPU (C-states)",
+    "description": "IDLEDISABLE = 1: процессор не входит в C-states и ждёт работу в C0. Убирает задержку выхода из простоя ценой постоянного нагрева.",
+    "recommendation": "Для игр: только эксперимент, только на десктопе с хорошим охлаждением и с контролем температур.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft рекомендует для soft real-time IoT-устройств. Для игр замеров пользы нет; valleyofdoom советует большинству оставить idle включённым и не отключать при PBO/Turbo Boost и включённом SMT. Диспетчер задач будет показывать 100 % загрузки CPU.",
+    "risk": "high",
+    "riskNote": "Постоянно высокие температура и потребление, возможный троттлинг, потеря буста одного-двух ядер на Ryzen/Intel, шум. Только AC.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт 0/0 во всех схемах.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "5d76a2ca-e8c0-402f-a133-2158492d58ad",
+        "alias": "IDLEDISABLE",
+        "ac": 1,
+        "dc": 0
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "5d76a2ca-e8c0-402f-a133-2158492d58ad",
+        "alias": "IDLEDISABLE",
+        "ac": 0,
+        "dc": 0
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/iot/iot-enterprise/soft-real-time/soft-real-time-device",
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "power.idle-demote-promote",
+    "category": "power",
+    "title": "Пороги понижения/повышения состояния простоя",
+    "description": "IDLEDEMOTE = IDLEPROMOTE = 100 %: процессор почти не уходит в более глубокие C-state. Мягкий вариант отключения простоя.",
+    "recommendation": "Для игр: только эксперимент.",
+    "evidence": "experimental",
+    "evidenceNote": "Параметры документированы Microsoft (Win11), но эффект на задержки не измерен; на Zen 3 Windows видит лишь 2 ACPI C-state и масштабирование порогов (IDLESCALING) выключено — влияние может отсутствовать.",
+    "risk": "medium",
+    "riskNote": "Повышение потребления/температуры в простое.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = Balanced: IDLEDEMOTE 40/20, IDLEPROMOTE 60/40 (одинаково на Win11 23H2 и Win10 LTSC).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "4b92d758-5a24-4851-a470-815d78aee119",
+        "alias": "IDLEDEMOTE",
+        "ac": 100,
+        "dc": 20
+      },
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "7b224883-b3cc-4d79-819f-8374152cbe7c",
+        "alias": "IDLEPROMOTE",
+        "ac": 100,
+        "dc": 40
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "4b92d758-5a24-4851-a470-815d78aee119",
+        "alias": "IDLEDEMOTE",
+        "ac": 40,
+        "dc": 20
+      },
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "7b224883-b3cc-4d79-819f-8374152cbe7c",
+        "alias": "IDLEPROMOTE",
+        "ac": 60,
+        "dc": 40
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/options-for-perf-state-engine-idledemotethreshold",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.pcie-aspm-off",
+    "category": "power",
+    "title": "Выключить энергосбережение PCI Express (ASPM)",
+    "description": "«Управление питанием состояния связи» = Откл. на AC: линки PCIe (видеокарта, NVMe, сетевая карта) не уходят в L0s/L1.",
+    "recommendation": "Для игр: выключить на настольном ПК.",
+    "evidence": "situational",
+    "evidenceNote": "Работает только если BIOS передал управление ASPM ОС (_OSC); иначе ничего не меняет. Убирает задержки выхода из L1 и известные отвалы некоторых сетевых контроллеров. В High/Ultimate уже 0.",
+    "risk": "low",
+    "riskNote": "Немного выше потребление. От батареи не меняется.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = Balanced 1/2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "501a4d13-42af-4429-9fd1-a8218c268e20",
+        "setting": "ee12f906-d277-404b-b6da-e5fa1a576df5",
+        "alias": "ASPM",
+        "ac": 0,
+        "dc": 2
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "501a4d13-42af-4429-9fd1-a8218c268e20",
+        "setting": "ee12f906-d277-404b-b6da-e5fa1a576df5",
+        "alias": "ASPM",
+        "ac": 1,
+        "dc": 2
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/power-management-for-storage-hardware-devices-nvme",
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "power.usb-selective-suspend-off",
+    "category": "power",
+    "title": "Запретить временное отключение USB-портов",
+    "description": "USB selective suspend = Запрещено на AC: драйвер не приостанавливает простаивающие USB-устройства (мышь, гарнитура, ЦАП, аудиоинтерфейс).",
+    "recommendation": "Для игр: выключить на настольном ПК.",
+    "evidence": "situational",
+    "evidenceNote": "Устраняет «засыпание» и переподключение USB-периферии; активные HID-устройства с постоянным опросом и так не засыпают, поэтому прирост задержки ввода не гарантирован. Включено даже в Ultimate (1/1).",
+    "risk": "low",
+    "riskNote": "Небольшой рост потребления; от батареи не меняется.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = 1/1 (во всех схемах).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "2a737441-1930-4402-8d77-b2bebba308a3",
+        "setting": "48e6b7a6-50f5-4782-a5d4-53bb8f07e226",
+        "alias": "USB selective suspend",
+        "ac": 0,
+        "dc": 1
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "2a737441-1930-4402-8d77-b2bebba308a3",
+        "setting": "48e6b7a6-50f5-4782-a5d4-53bb8f07e226",
+        "alias": "USB selective suspend",
+        "ac": 1,
+        "dc": 1
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv",
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "power.usb3-lpm-off",
+    "category": "power",
+    "title": "Выключить USB 3 Link Power Management",
+    "description": "Отключает состояния U1/U2 линков USB 3.x на AC.",
+    "recommendation": "Для игр: выключить, особенно при отвалах USB 3-устройств.",
+    "evidence": "situational",
+    "evidenceNote": "Убирает задержки выхода из U1/U2 и типичные отвалы/переподключения USB 3-устройств (Framework KB). Дефолт 2 (умеренное) во всех схемах.",
+    "risk": "low",
+    "riskNote": "Небольшой рост потребления.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = 2/2.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "2a737441-1930-4402-8d77-b2bebba308a3",
+        "setting": "d4e98f31-5ffe-4ce1-be31-1b38b384c009",
+        "alias": "USB 3 Link Power Management",
+        "ac": 0,
+        "dc": 2
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "2a737441-1930-4402-8d77-b2bebba308a3",
+        "setting": "d4e98f31-5ffe-4ce1-be31-1b38b384c009",
+        "alias": "USB 3 Link Power Management",
+        "ac": 2,
+        "dc": 2
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://knowledgebase.frame.work/en_us/my-usb-3-0-device-is-disconnecting-and-reconnecting-ryS3VSvYF",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.usb-hub-suspend-timeout",
+    "category": "power",
+    "title": "Таймаут приостановки USB-хаба",
+    "description": "Hub Selective Suspend Timeout (мс, дефолт 50).",
+    "recommendation": "Для игр: не трогать.",
+    "evidence": "avoid",
+    "evidenceNote": "Бесполезно: при выключенном selective suspend не действует, на задержки ввода само по себе не влияет; замеров нет.",
+    "risk": "low",
+    "riskNote": "—",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт 50/50 во всех схемах.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "2a737441-1930-4402-8d77-b2bebba308a3",
+        "setting": "0853a681-27c8-4100-a2fd-82013e970683",
+        "alias": "Hub Selective Suspend Timeout",
+        "ac": 50,
+        "dc": 50
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.usb-ioc-all-tds",
+    "category": "power",
+    "title": "USB: прерывание на каждый TD («Setting IOC on all TDs»)",
+    "description": "Недокументированный параметр xHCI: прерывание по завершении каждого Transfer Descriptor.",
+    "recommendation": "Для игр: не трогать.",
+    "evidence": "avoid",
+    "evidenceNote": "Не документирован Microsoft, замеров нет. Дефолт AC = 1 в Balanced/High/Ultimate.",
+    "risk": "medium",
+    "riskNote": "Непредсказуемое поведение USB-стека.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт Balanced 1/0, High 1/1.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "2a737441-1930-4402-8d77-b2bebba308a3",
+        "setting": "498c044a-201b-4631-a522-5c744ed4e678",
+        "alias": "IOC on all TDs",
+        "ac": 1,
+        "dc": 0
+      }
+    ],
+    "detect": null,
+    "sources": []
+  },
+  {
+    "id": "power.disk-idle-never",
+    "category": "power",
+    "title": "Не отключать жёсткий диск (от сети)",
+    "description": "«Отключать жёсткий диск через» = Никогда на AC: HDD не останавливает шпиндель.",
+    "recommendation": "Для игр: включить, если игры стоят на HDD. Для SSD/NVMe не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "Убирает подвисания на раскрутку HDD. Это единственное отличие Ultimate от High performance на AC.",
+    "risk": "low",
+    "riskNote": "HDD работает постоянно (шум, износ, потребление).",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = Balanced 1200/600 с.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "6738e2c4-e8a5-4a42-b16a-e040e769756e",
+        "alias": "DISKIDLE",
+        "ac": 0,
+        "dc": 600
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "6738e2c4-e8a5-4a42-b16a-e040e769756e",
+        "alias": "DISKIDLE",
+        "ac": 1200,
+        "dc": 600
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.nvme-latency-tolerance-zero",
+    "category": "power",
+    "title": "NVMe: без глубоких состояний простоя (от сети)",
+    "description": "Primary/Secondary NVMe Power State Transition Latency Tolerance = 0 мс на AC: StorNVMe не переводит диск в неоперационные состояния с задержкой выхода.",
+    "recommendation": "Для игр: включить на настольном ПК с NVMe.",
+    "evidence": "situational",
+    "evidenceNote": "Документировано Microsoft: после таймаута простоя выбирается самое глубокое PS с ENLAT+EXLAT ≤ tolerance; дефолт High performance — 0 мс (AC). Убирает задержку первого I/O после простоя; на FPS обычно не влияет. Только для inbox-драйвера StorNVMe.",
+    "risk": "low",
+    "riskNote": "Выше потребление и температура NVMe в простое.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = Balanced: Primary 15/50 мс, Secondary 100/100 мс. Сторонние NVMe-драйверы (Samsung, Intel RST) эти параметры могут игнорировать.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "fc95af4d-40e7-4b6d-835a-56d131dbc80e",
+        "alias": "NVMe Primary Latency Tolerance",
+        "ac": 0,
+        "dc": 50
+      },
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "dbc9e238-6de9-49e3-92cd-8c2b4946b472",
+        "alias": "NVMe Secondary Latency Tolerance",
+        "ac": 0,
+        "dc": 100
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "fc95af4d-40e7-4b6d-835a-56d131dbc80e",
+        "alias": "NVMe Primary Latency Tolerance",
+        "ac": 15,
+        "dc": 50
+      },
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "dbc9e238-6de9-49e3-92cd-8c2b4946b472",
+        "alias": "NVMe Secondary Latency Tolerance",
+        "ac": 100,
+        "dc": 100
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/power-management-for-storage-hardware-devices-nvme"
+    ]
+  },
+  {
+    "id": "power.nvme-noppme",
+    "category": "power",
+    "title": "NVMe: режим NOPPME",
+    "description": "Non-Operational Power State Permissive Mode: разрешает контроллеру превышать мощность неоперационного состояния для фоновых операций.",
+    "recommendation": "Для игр: не трогать.",
+    "evidence": "avoid",
+    "evidenceNote": "К задержкам не относится; замеров нет. Дефолт 1/0 во всех схемах.",
+    "risk": "low",
+    "riskNote": "—",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт 1/0.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "fc7372b6-ab2d-43ee-8797-15e9841f2cca",
+        "alias": "DISKNVMENOPPME",
+        "ac": 1,
+        "dc": 0
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/power-management-for-storage-hardware-devices-nvme"
+    ]
+  },
+  {
+    "id": "power.ahci-link-pm-off",
+    "category": "power",
+    "title": "SATA: выключить энергосбережение линка (AHCI LPM)",
+    "description": "AHCI Link Power Management = Active и адаптивный таймаут 0 на AC: SATA-линк не уходит в Partial/Slumber.",
+    "recommendation": "Для игр: включить, если есть SATA SSD/HDD.",
+    "evidence": "situational",
+    "evidenceNote": "Документировано Microsoft: по умолчанию HIPM, через 100 мс Partial → Slumber, DEVSLP через 6 с. Active убирает задержку выхода из Slumber для первого запроса. Только SATA; на FPS обычно не влияет. В High/Ultimate уже 0 на AC.",
+    "risk": "low",
+    "riskNote": "Чуть выше потребление.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = Balanced: HIPM/DIPM 1/1, Adaptive 100/100 мс.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "0b2d69d7-a2a1-449c-9680-f91c70521c60",
+        "alias": "AHCI HIPM/DIPM",
+        "ac": 0,
+        "dc": 1
+      },
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "dab60367-53fe-4fbc-825e-521d069d2456",
+        "alias": "AHCI Adaptive",
+        "ac": 0,
+        "dc": 100
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "0b2d69d7-a2a1-449c-9680-f91c70521c60",
+        "alias": "AHCI HIPM/DIPM",
+        "ac": 1,
+        "dc": 1
+      },
+      {
+        "type": "power",
+        "subgroup": "0012ee47-9041-4b5d-9b77-535fba8b1442",
+        "setting": "dab60367-53fe-4fbc-825e-521d069d2456",
+        "alias": "AHCI Adaptive",
+        "ac": 100,
+        "dc": 100
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/power-management-for-storage-hardware-devices-sata",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.latency-hint-perf-100",
+    "category": "power",
+    "title": "Подсказка о задержке: 100 % производительности",
+    "description": "LATENCYHINTPERF = 100 вместо 99: до какого уровня поднимать производительность CPU при событиях ввода (клики мыши, Enter, касания).",
+    "recommendation": "Для игр: эксперимент; разница с дефолтом 99 % минимальна.",
+    "evidence": "experimental",
+    "evidenceNote": "Механизм документирован Microsoft (PerfLatencyHint), но эффект 100 против 99 % не измерен.",
+    "risk": "low",
+    "riskNote": "—",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт 99/99 в Balanced/High/Ultimate (Power saver — 0/0).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "619b7505-003b-4e82-b7a6-4dd29c300971",
+        "alias": "LATENCYHINTPERF",
+        "ac": 100,
+        "dc": 99
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "619b7505-003b-4e82-b7a6-4dd29c300971",
+        "alias": "LATENCYHINTPERF",
+        "ac": 99,
+        "dc": 99
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/options-for-perf-state-engine-perflatencyhint",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.hetero-prefer-performant",
+    "category": "power",
+    "title": "Intel hybrid: предпочитать производительные ядра",
+    "description": "Политика гетерогенного планирования = «Предпочитать производительные процессоры» для длинных и коротких потоков на AC.",
+    "recommendation": "Для игр: только эксперимент на Intel 12-го поколения и новее, если игра «застревает» на E-ядрах.",
+    "evidence": "experimental",
+    "evidenceNote": "Значения документированы Microsoft (0 все, 1 производительные, 2 предпочитать производительные, 3 эффективные, 4 предпочитать эффективные, 5 автоматически). Thread Director + Win11 обычно справляются; замеров пользы нет.",
+    "risk": "medium",
+    "riskNote": "Фоновые задачи тоже уходят на P-ядра: выше потребление/температура, возможна конкуренция с игрой.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = Win11 23H2 Balanced: SCHEDPOLICY 5/5, SHORTSCHEDPOLICY 2/5 (на Win10 LTSC SHORTSCHEDPOLICY 5/5). На не-hybrid CPU параметры не используются.",
+    "vendor": "intel",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "93b8b6dc-0698-4d1c-9ee4-0644e900c85d",
+        "alias": "SCHEDPOLICY",
+        "ac": 2,
+        "dc": 5
+      },
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "bae08b81-2d5e-4688-ad6a-13243356654b",
+        "alias": "SHORTSCHEDPOLICY",
+        "ac": 2,
+        "dc": 5
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "93b8b6dc-0698-4d1c-9ee4-0644e900c85d",
+        "alias": "SCHEDPOLICY",
+        "ac": 5,
+        "dc": 5
+      },
+      {
+        "type": "power",
+        "subgroup": "54533251-82be-4824-96c1-47b60b740d00",
+        "setting": "bae08b81-2d5e-4688-ad6a-13243356654b",
+        "alias": "SHORTSCHEDPOLICY",
+        "ac": 2,
+        "dc": 5
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/configuration-for-hetero-power-scheduling-schedulingpolicy",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.sleep-never-ac",
+    "category": "power",
+    "title": "Не переходить в сон от сети",
+    "description": "«Сон после» = Никогда на AC. Удобно для долгих загрузок и сессий; на производительность не влияет.",
+    "recommendation": "Для игр: по желанию (комфорт), на FPS не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "Влияет только на поведение в простое. В High/Ultimate уже 0.",
+    "risk": "low",
+    "riskNote": "ПК не засыпает сам — выше расход электроэнергии.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Revert = Win11 22H2+ Balanced 900/600 с; на Win10 дефолт 1800/900 с.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "238c9fa8-0aad-41ed-83f4-97be242c8f20",
+        "setting": "29f6c1db-86da-48c5-9fdb-f2b67b1f44da",
+        "alias": "STANDBYIDLE",
+        "ac": 0,
+        "dc": 600
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "238c9fa8-0aad-41ed-83f4-97be242c8f20",
+        "setting": "29f6c1db-86da-48c5-9fdb-f2b67b1f44da",
+        "alias": "STANDBYIDLE",
+        "ac": 900,
+        "dc": 600
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "power.hibernate-off",
+    "category": "power",
+    "title": "Отключить гибернацию",
+    "description": "powercfg /hibernate off: удаляет hiberfil.sys и вместе с ним отключает быстрый запуск.",
+    "recommendation": "Для игр: по желанию — освобождает место на системном диске, на FPS не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "Экономит место (размер hiberfil ≈ значительная доля ОЗУ). Влияния на производительность нет. На этой машине уже выключено.",
+    "risk": "low",
+    "riskNote": "Пропадают гибернация и быстрый запуск; на ноутбуке — нет защиты от полной разрядки в сне.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт: гибернация включена (HibernateEnabled = 1).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "powercfg /hibernate off"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "powercfg /hibernate on"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKLM",
+      "path": "SYSTEM\\CurrentControlSet\\Control\\Power",
+      "name": "HibernateEnabled",
+      "valueType": "DWORD",
+      "equals": 0
+    },
+    "sources": [
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json",
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "power.power-throttling-off",
+    "category": "power",
+    "title": "Выключить регулирование мощности (Power Throttling)",
+    "description": "Политика Windows «Выключить регулирование мощности»: система перестаёт переводить фоновые процессы в EcoQoS (понижение частоты/E-ядра).",
+    "recommendation": "Для игр: включить, если стримите/записываете (OBS, Discord, рекордер в фоне). На саму игру не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "Официальная политика (Power.admx, PowerThrottlingTurnOff → HKLM\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling\\PowerThrottlingOff). Игра в фокусе и так получает High QoS; польза только для фоновых процессов, особенно на ноутбуках и Intel hybrid. Microsoft Q&A: глобально Efficiency Mode этим не гарантированно выключается.",
+    "risk": "low",
+    "riskNote": "Выше энергопотребление фоновых процессов (ноутбуки).",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Win10 1709+ (политика SUPPORTED_Windows_10_0_NOSERVER). Дефолт — ключа нет. Нужна ли перезагрузка — НЕ ПРОВЕРЕНО.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+        "name": "PowerThrottlingOff",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling",
+        "name": "PowerThrottlingOff",
+        "valueType": "DWORD",
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/procthread/quality-of-service",
+      "https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setprocessinformation",
+      "https://learn.microsoft.com/en-us/answers/questions/2224687/how-do-i-permanently-disable-efficiency-mode-that"
+    ]
+  },
+  {
+    "id": "power.show-hidden-settings",
+    "category": "power",
+    "title": "Показать скрытые параметры в «Электропитании»",
+    "description": "Снимает флаг скрытия (ATTRIB_HIDE) у ключевых параметров (парковка, буст, EPP, idle, USB 3 LPM, AHCI, NVMe, гетеро-планирование), чтобы они были видны в Панели управления.",
+    "recommendation": "Для игр: по желанию; на производительность не влияет.",
+    "evidence": "proven",
+    "evidenceNote": "Документированный механизм (POWER_ATTRIBUTE_HIDE, powercfg -attributes). Меняет только видимость в powercfg.cpl; hateeze читает и пишет скрытые параметры через API и без этого.",
+    "risk": "low",
+    "riskNote": "Нет (только интерфейс). Откат возвращает флаг скрытия тем же параметрам.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Все перечисленные параметры на этой машине изначально имеют Attributes = 1. Бит SHOW_AOAC (2) не затрагивается.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$list = @('54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583', '54533251-82be-4824-96c1-47b60b740d00 be337238-0d82-4146-a960-4f3749d470c7', '54533251-82be-4824-96c1-47b60b740d00 36687f9e-e3a5-4dbf-b1dc-15eb381c6863', '54533251-82be-4824-96c1-47b60b740d00 5d76a2ca-e8c0-402f-a133-2158492d58ad', '54533251-82be-4824-96c1-47b60b740d00 4b92d758-5a24-4851-a470-815d78aee119', '54533251-82be-4824-96c1-47b60b740d00 7b224883-b3cc-4d79-819f-8374152cbe7c', '54533251-82be-4824-96c1-47b60b740d00 619b7505-003b-4e82-b7a6-4dd29c300971', '54533251-82be-4824-96c1-47b60b740d00 93b8b6dc-0698-4d1c-9ee4-0644e900c85d', '54533251-82be-4824-96c1-47b60b740d00 bae08b81-2d5e-4688-ad6a-13243356654b', '2a737441-1930-4402-8d77-b2bebba308a3 d4e98f31-5ffe-4ce1-be31-1b38b384c009', '0012ee47-9041-4b5d-9b77-535fba8b1442 0b2d69d7-a2a1-449c-9680-f91c70521c60', '0012ee47-9041-4b5d-9b77-535fba8b1442 dab60367-53fe-4fbc-825e-521d069d2456', '0012ee47-9041-4b5d-9b77-535fba8b1442 d639518a-e56d-4345-8af2-b9f32fb26109', '0012ee47-9041-4b5d-9b77-535fba8b1442 d3d55efd-c1ff-424e-9dc3-441be7833010', '0012ee47-9041-4b5d-9b77-535fba8b1442 fc95af4d-40e7-4b6d-835a-56d131dbc80e', '0012ee47-9041-4b5d-9b77-535fba8b1442 dbc9e238-6de9-49e3-92cd-8c2b4946b472')\nforeach ($l in $list) { $p = $l.Split(' '); powercfg -attributes $p[0] $p[1] -ATTRIB_HIDE 2>$null | Out-Null }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$list = @('54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583', '54533251-82be-4824-96c1-47b60b740d00 be337238-0d82-4146-a960-4f3749d470c7', '54533251-82be-4824-96c1-47b60b740d00 36687f9e-e3a5-4dbf-b1dc-15eb381c6863', '54533251-82be-4824-96c1-47b60b740d00 5d76a2ca-e8c0-402f-a133-2158492d58ad', '54533251-82be-4824-96c1-47b60b740d00 4b92d758-5a24-4851-a470-815d78aee119', '54533251-82be-4824-96c1-47b60b740d00 7b224883-b3cc-4d79-819f-8374152cbe7c', '54533251-82be-4824-96c1-47b60b740d00 619b7505-003b-4e82-b7a6-4dd29c300971', '54533251-82be-4824-96c1-47b60b740d00 93b8b6dc-0698-4d1c-9ee4-0644e900c85d', '54533251-82be-4824-96c1-47b60b740d00 bae08b81-2d5e-4688-ad6a-13243356654b', '2a737441-1930-4402-8d77-b2bebba308a3 d4e98f31-5ffe-4ce1-be31-1b38b384c009', '0012ee47-9041-4b5d-9b77-535fba8b1442 0b2d69d7-a2a1-449c-9680-f91c70521c60', '0012ee47-9041-4b5d-9b77-535fba8b1442 dab60367-53fe-4fbc-825e-521d069d2456', '0012ee47-9041-4b5d-9b77-535fba8b1442 d639518a-e56d-4345-8af2-b9f32fb26109', '0012ee47-9041-4b5d-9b77-535fba8b1442 d3d55efd-c1ff-424e-9dc3-441be7833010', '0012ee47-9041-4b5d-9b77-535fba8b1442 fc95af4d-40e7-4b6d-835a-56d131dbc80e', '0012ee47-9041-4b5d-9b77-535fba8b1442 dbc9e238-6de9-49e3-92cd-8c2b4946b472')\nforeach ($l in $list) { $p = $l.Split(' '); powercfg -attributes $p[0] $p[1] +ATTRIB_HIDE 2>$null | Out-Null }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$list = @('54533251-82be-4824-96c1-47b60b740d00 0cc5b647-c1df-4637-891a-dec35c318583', '54533251-82be-4824-96c1-47b60b740d00 be337238-0d82-4146-a960-4f3749d470c7', '54533251-82be-4824-96c1-47b60b740d00 36687f9e-e3a5-4dbf-b1dc-15eb381c6863', '54533251-82be-4824-96c1-47b60b740d00 5d76a2ca-e8c0-402f-a133-2158492d58ad', '54533251-82be-4824-96c1-47b60b740d00 4b92d758-5a24-4851-a470-815d78aee119', '54533251-82be-4824-96c1-47b60b740d00 7b224883-b3cc-4d79-819f-8374152cbe7c', '54533251-82be-4824-96c1-47b60b740d00 619b7505-003b-4e82-b7a6-4dd29c300971', '54533251-82be-4824-96c1-47b60b740d00 93b8b6dc-0698-4d1c-9ee4-0644e900c85d', '54533251-82be-4824-96c1-47b60b740d00 bae08b81-2d5e-4688-ad6a-13243356654b', '2a737441-1930-4402-8d77-b2bebba308a3 d4e98f31-5ffe-4ce1-be31-1b38b384c009', '0012ee47-9041-4b5d-9b77-535fba8b1442 0b2d69d7-a2a1-449c-9680-f91c70521c60', '0012ee47-9041-4b5d-9b77-535fba8b1442 dab60367-53fe-4fbc-825e-521d069d2456', '0012ee47-9041-4b5d-9b77-535fba8b1442 d639518a-e56d-4345-8af2-b9f32fb26109', '0012ee47-9041-4b5d-9b77-535fba8b1442 d3d55efd-c1ff-424e-9dc3-441be7833010', '0012ee47-9041-4b5d-9b77-535fba8b1442 fc95af4d-40e7-4b6d-835a-56d131dbc80e', '0012ee47-9041-4b5d-9b77-535fba8b1442 dbc9e238-6de9-49e3-92cd-8c2b4946b472')\n$hidden = 0; foreach ($l in $list) { $p = $l.Split(' '); $k = \"HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerSettings\\$($p[0])\\$($p[1])\"; $a = (Get-ItemProperty -Path $k -Name Attributes -ErrorAction SilentlyContinue).Attributes; if ($a -band 1) { $hidden++ } }\n[bool]($hidden -eq 0)",
+      "equals": "True"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/powrprof/nf-powrprof-powerwritesettingattributes",
+      "https://learn.microsoft.com/en-us/windows/win32/api/powrprof/nf-powrprof-powerenumerate"
+    ]
+  },
+  {
+    "id": "cpu.cppc-preferred-cores-bios",
+    "category": "cpu",
+    "title": "CPPC и Preferred Cores в BIOS (рекомендация)",
+    "description": "Проверить, что в BIOS включены CPPC и CPPC Preferred Cores (Auto/Enabled): Windows узнаёт самые быстрые ядра и сажает на них нагруженные потоки.",
+    "recommendation": "Для игр: оставить включёнными. hateeze только проверяет (событие Kernel-Processor-Power 55) и показывает подсказку.",
+    "evidence": "proven",
+    "evidenceNote": "CPPC — штатный механизм ACPI, используемый Windows PPM (на этой машине PerformanceImplementation = 3, CPPC). Отключение лишает планировщик данных о лучших ядрах.",
+    "risk": "low",
+    "riskNote": "Изменения в BIOS делает пользователь.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Win10 1903+ для корректного учёта preferred cores на Ryzen.",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/configure-processor-power-management-options"
+    ]
+  },
+  {
+    "id": "cpu.smt-disable-bios",
+    "category": "cpu",
+    "title": "Отключить SMT/Hyper-Threading (BIOS)",
+    "description": "Отключение второго потока на ядро уменьшает конкуренцию за ресурсы ядра; делается только в BIOS.",
+    "recommendation": "Для игр: только по результатам собственного бенчмарка; многие современные игры используют больше 8 потоков.",
+    "evidence": "experimental",
+    "evidenceNote": "valleyofdoom: может как помочь (меньше джиттер, выше разгон), так и навредить — обязательно бенчмарк. Универсального выигрыша нет.",
+    "risk": "medium",
+    "riskNote": "Потеря производительности в многопоточных играх и задачах (стрим, компиляция).",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Только рекомендация; приложение не меняет BIOS.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "cpu.x3d-dual-ccd-keep-balanced",
+    "category": "cpu",
+    "title": "Ryzen X3D с двумя CCD: оставить «Сбалансированную» и Game Mode",
+    "description": "Для 7900X3D/7950X3D/9900X3D/9950X3D: драйвер AMD 3D V-Cache Performance Optimizer паркует CCD без V-Cache через профиль Game Mode схемы Balanced.",
+    "recommendation": "Для игр: схема «Сбалансированная», Game Mode включён, установлен чипсет AMD; не применять схему hateeze и отключение парковки.",
+    "evidence": "situational",
+    "evidenceNote": "PPM-профили действуют только в схемах, производных от Balanced (djdallmann), а парковка CCD на этих CPU завязана на профиль Game Mode (HWBusters). Вывод логический, на X3D-железе НЕ ПРОВЕРЕН.",
+    "risk": "low",
+    "riskNote": "При игнорировании — игровые потоки попадают на CCD без V-Cache, FPS ниже.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Детект: асимметричный L3 (GetLogicalProcessorInformationEx RelationCache) или имя CPU.",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://hwbusters.com/cpu/amd-ryzen-9-7950x3d-core-parking-problem-solution/",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINPOWER/README.md",
+      "https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/configure-processor-power-management-options"
+    ]
+  },
+  {
+    "id": "cpu.spectre-meltdown-mitigations-off",
+    "category": "cpu",
+    "title": "Отключить защиту от Spectre v2/Meltdown",
+    "description": "FeatureSettingsOverride = 3 и FeatureSettingsOverrideMask = 3 отключают митигации CVE-2017-5715 и CVE-2017-5754.",
+    "recommendation": "Для игр: не делать.",
+    "evidence": "avoid",
+    "evidenceNote": "Риск безопасности. На AMD Meltdown неприменим, на новых архитектурах (Zen 4) отключение Spectre v2 может даже снизить производительность (valleyofdoom/Phoronix); часть античитов (FACEIT) требует митигаций. Значения из руководства Microsoft приведены только для документации.",
+    "risk": "high",
+    "riskNote": "Уязвимость к атакам по сторонним каналам; возможные проблемы с античитами.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт: значений нет (митигации включены по умолчанию на клиенте).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+        "name": "FeatureSettingsOverride",
+        "valueType": "DWORD",
+        "value": 3,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+        "name": "FeatureSettingsOverrideMask",
+        "valueType": "DWORD",
+        "value": 3,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+        "name": "FeatureSettingsOverride",
+        "valueType": "DWORD",
+        "op": "delete"
+      },
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+        "name": "FeatureSettingsOverrideMask",
+        "valueType": "DWORD",
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://support.microsoft.com/en-us/topic/windows-client-guidance-for-it-pros-to-protect-against-silicon-based-microarchitectural-and-speculative-execution-side-channel-vulnerabilities-35820a8a-ae13-1299-88cc-357f104f5b11",
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "cpu.microcode-dll-rename",
+    "category": "cpu",
+    "title": "Отключить загрузку микрокода ОС (переименование mcupdate_*.dll)",
+    "description": "Переименование mcupdate_AuthenticAMD.dll / mcupdate_GenuineIntel.dll отключает обновление микрокода силами Windows.",
+    "recommendation": "Для игр: не делать.",
+    "evidence": "avoid",
+    "evidenceNote": "Убирает исправления безопасности/стабильности микрокода, откатывается обновлениями Windows, требует прав TrustedInstaller.",
+    "risk": "high",
+    "riskNote": "Нестабильность, уязвимости, сломанные обновления.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "—",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "cpu.amd-ryzen-balanced-plan",
+    "category": "cpu",
+    "title": "Схема «AMD Ryzen Balanced»",
+    "description": "Устаревшая схема AMD 2017 года для Zen 1 (отключала парковку, ускоряла смену P-state).",
+    "recommendation": "Для игр: не устанавливать; использовать штатные схемы Windows.",
+    "evidence": "avoid",
+    "evidenceNote": "Устарела: планировщик Win10 1903+ учитывает CCX, провижининг Win11 уже делает Balanced быстрой на AC; актуальный пакет чипсета AMD на этой машине её не ставит.",
+    "risk": "low",
+    "riskNote": "Устаревшие значения, лишняя схема.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "—",
+    "vendor": "amd",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://www.pcworld.com/article/406352/amds-ryzen-balanced-power-plan-for-windows-promises-to-boost-cpu-performance.html",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/PowerPlanSettingsCompare.csv"
+    ]
+  },
+  {
+    "id": "timer.remove-forced-hpet",
+    "category": "timer",
+    "title": "Убрать принудительный HPET (useplatformclock)",
+    "description": "Удаляет параметр загрузки useplatformclock, если его включил другой твикер: счётчик производительности снова работает от TSC.",
+    "recommendation": "Для игр: применить, если параметр найден (это возврат к штатному поведению Windows).",
+    "evidence": "proven",
+    "evidenceNote": "Microsoft: useplatformclock — только для отладки; QPC от платформенного таймера стоит ≈0,8–1,0 мкс и требует системного вызова, от TSC — десятки нс (на этой машине 23 нс). Удаление восстанавливает дефолт.",
+    "risk": "low",
+    "riskNote": "При включённом BitLocker изменение BCD может запросить ключ восстановления.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт — параметра нет. Детект: строка «useplatformclock Yes» в bcdedit /enum {current}.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "bcd",
+        "op": "deletevalue",
+        "name": "useplatformclock"
+      }
+    ],
+    "revert": [
+      {
+        "type": "bcd",
+        "op": "deletevalue",
+        "name": "useplatformclock"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/bcdedit--set",
+      "https://learn.microsoft.com/en-us/windows/win32/sysinfo/acquiring-high-resolution-time-stamps"
+    ]
+  },
+  {
+    "id": "timer.useplatformclock-force-hpet",
+    "category": "timer",
+    "title": "Принудительный HPET (useplatformclock yes)",
+    "description": "Заставляет QueryPerformanceCounter использовать HPET вместо TSC.",
+    "recommendation": "Для игр: никогда.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: только для отладки; стоимость QPC вырастает в десятки раз (≈0,8–1,0 мкс против ≈20–30 нс), что напрямую снижает FPS и повышает задержки (сообщения о падении загрузки GPU на «HPET bug»-системах).",
+    "risk": "high",
+    "riskNote": "Падение FPS, рост задержек и микрофризы.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт — параметра нет.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "bcd",
+        "op": "set",
+        "name": "useplatformclock",
+        "value": "yes"
+      }
+    ],
+    "revert": [
+      {
+        "type": "bcd",
+        "op": "deletevalue",
+        "name": "useplatformclock"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/bcdedit--set",
+      "https://learn.microsoft.com/en-us/windows/win32/sysinfo/acquiring-high-resolution-time-stamps",
+      "https://overclockers.at/articles/the-hpet-bug-what-it-is-and-what-it-isnt"
+    ]
+  },
+  {
+    "id": "timer.disable-dynamic-tick",
+    "category": "timer",
+    "title": "Отключить dynamic tick",
+    "description": "bcdedit disabledynamictick yes: прерывания системных часов идут постоянно, даже в простое.",
+    "recommendation": "Для игр: только эксперимент на настольном ПК.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft: только для отладки. Доказанного выигрыша для игр нет; описан лишь как средство от редких проблем таймера на отдельных платформах.",
+    "risk": "medium",
+    "riskNote": "Больше прерываний и энергопотребление (ноутбуки); при BitLocker — возможен запрос ключа восстановления.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Win8+. Дефолт — параметра нет.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "bcd",
+        "op": "set",
+        "name": "disabledynamictick",
+        "value": "yes"
+      }
+    ],
+    "revert": [
+      {
+        "type": "bcd",
+        "op": "deletevalue",
+        "name": "disabledynamictick"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/bcdedit--set",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINKERNEL/README.md"
+    ]
+  },
+  {
+    "id": "timer.useplatformtick",
+    "category": "timer",
+    "title": "Тик от платформенного таймера (useplatformtick yes)",
+    "description": "Системный тик только от платформенного источника, синтетические таймеры запрещены.",
+    "recommendation": "Для игр: не применять.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: только для отладки. Пользы не доказано, есть сообщения о росте DPC-задержек и джиттера (Blur Busters); в актуальном PC-Tuning valleyofdoom не рекомендуется.",
+    "risk": "medium",
+    "riskNote": "Рост DPC-задержек/джиттера на части систем.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт — параметра нет.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "bcd",
+        "op": "set",
+        "name": "useplatformtick",
+        "value": "yes"
+      }
+    ],
+    "revert": [
+      {
+        "type": "bcd",
+        "op": "deletevalue",
+        "name": "useplatformtick"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/bcdedit--set",
+      "https://forums.blurbusters.com/viewtopic.php?p=67575",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINKERNEL/README.md"
+    ]
+  },
+  {
+    "id": "timer.tscsyncpolicy",
+    "category": "timer",
+    "title": "Политика синхронизации TSC (tscsyncpolicy)",
+    "description": "Параметр загрузки tscsyncpolicy (Enhanced или Legacy) — политика синхронизации счётчиков TSC между ядрами.",
+    "recommendation": "Для игр: не трогать.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: только для отладки. Windows по умолчанию использует Default, а не Enhanced (valleyofdoom, WinDbg HalpTscSyncPolicy); djdallmann не нашёл влияния.",
+    "risk": "medium",
+    "riskNote": "Возможны проблемы синхронизации времени между ядрами.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт — параметра нет.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "bcd",
+        "op": "set",
+        "name": "tscsyncpolicy",
+        "value": "enhanced"
+      }
+    ],
+    "revert": [
+      {
+        "type": "bcd",
+        "op": "deletevalue",
+        "name": "tscsyncpolicy"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/bcdedit--set",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/research.md",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINKERNEL/README.md"
+    ]
+  },
+  {
+    "id": "timer.global-timer-resolution-requests",
+    "category": "timer",
+    "title": "Глобальное разрешение таймера (Windows 11)",
+    "description": "GlobalTimerResolutionRequests = 1 возвращает поведение до Windows 10 2004: запрос точного таймера одним процессом действует на все.",
+    "recommendation": "Для игр: эксперимент, имеет смысл только вместе с удержанием 0,5 мс через hateeze и только если игра пейсит кадры через Sleep.",
+    "evidence": "experimental",
+    "evidenceNote": "Ключ существует только в ядрах Windows 11+ и Server 2022+ (valleyofdoom, анализ ntoskrnl). Точность Sleep(1) у процессов без собственного запроса — с ≈15,4 мс до ≈1,0–1,5 мс (замеры на этой машине и у valleyofdoom). valleyofdoom: «только для отладки», предпочитать per-process и RTSS.",
+    "risk": "medium",
+    "riskNote": "Все фоновые процессы снова обслуживаются часто: выше прерывания и энергопотребление.",
+    "reboot": "reboot",
+    "os": [
+      "win11"
+    ],
+    "osNote": "Win11 21H2+ (build 22000+). На Win10 любой версии ключ игнорируется. Дефолт — значения нет. Применяется ли без перезагрузки — НЕ ПРОВЕРЕНО.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel",
+        "name": "GlobalTimerResolutionRequests",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel",
+        "name": "GlobalTimerResolutionRequests",
+        "valueType": "DWORD",
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/research.md",
+      "https://github.com/valleyofdoom/TimerResolution",
+      "https://randomascii.wordpress.com/2020/10/04/windows-timer-resolution-the-great-rule-change/",
+      "https://learn.microsoft.com/en-us/windows/win32/api/timeapi/nf-timeapi-timebeginperiod"
+    ]
+  },
+  {
+    "id": "timer.resolution-service",
+    "category": "timer",
+    "title": "Удерживать разрешение таймера (служба hateeze)",
+    "description": "hateeze держит запрос NtSetTimerResolution (единицы 100 нс, например 5070 = 0,507 мс) и отключает для себя игнорирование запроса при свёрнутом окне. Реализуется кодом приложения.",
+    "recommendation": "Для игр: эксперимент; без «Глобального разрешения таймера» на Win10 2004+/Win11 игре не помогает.",
+    "evidence": "experimental",
+    "evidenceNote": "Замеры на этой машине: 0,5000 мс → Sleep(1) p50 1,50 мс; 0,507–0,52 мс → p50 1,02–1,04 мс; без запроса → 15,3 мс. Совпадает с valleyofdoom (micro-adjusting). Влияние на FPS/задержку ввода в играх не доказано; RTSS — альтернатива для пейсинга кадров.",
+    "risk": "low",
+    "riskNote": "Повышенная частота прерываний и энергопотребление пока служба работает.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Для игр имеет эффект только на Win11 с GlobalTimerResolutionRequests = 1 (или Win10 1909 и старше). SetProcessInformation(ProcessPowerThrottling=4, ControlMask=0x4, StateMask=0) — проверено на этой машине.",
+    "vendor": "any",
+    "kind": "value",
+    "options": {
+      "min": 5000,
+      "max": 10000,
+      "default": 5070
+    },
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/TimerResolution",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/research.md",
+      "https://learn.microsoft.com/en-us/windows/win32/api/timeapi/nf-timeapi-timebeginperiod",
+      "https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setprocessinformation",
+      "https://randomascii.wordpress.com/2020/10/04/windows-timer-resolution-the-great-rule-change/"
+    ]
+  },
+  {
+    "id": "timer.hpet-bios-disable",
+    "category": "timer",
+    "title": "Выключить HPET в BIOS",
+    "description": "Популярный совет отключить High Precision Event Timer в BIOS.",
+    "recommendation": "Для игр: не нужно — оставить как есть.",
+    "evidence": "avoid",
+    "evidenceNote": "Бесполезно: Windows использует TSC для QPC, если не задан useplatformclock; у многих AM4-плат опции нет. Если HPET когда-то форсировали — помогает «Убрать принудительный HPET».",
+    "risk": "low",
+    "riskNote": "Изменение BIOS делает пользователь; отдельные программы могут ожидать HPET.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Только рекомендация.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/sysinfo/acquiring-high-resolution-time-stamps"
+    ]
+  },
+  {
+    "id": "scheduler.win32-priority-separation",
+    "category": "scheduler",
+    "title": "Разделение приоритетов (Win32PrioritySeparation)",
+    "description": "Длина кванта планировщика (короткий/длинный), переменный или фиксированный квант и буст процесса переднего плана (1:1, 2:1, 3:1).",
+    "recommendation": "Для игр: оставить 2 (по умолчанию). Остальное — эксперимент.",
+    "evidence": "experimental",
+    "evidenceNote": "Семантика битов документирована (TechNet), применение «на лету» подтверждено djdallmann в WinDbg. Значение 2 на клиентской Windows эквивалентно 0x26. Замеров, что 0x28/0x2A/0x18 улучшают игры, нет.",
+    "risk": "low",
+    "riskNote": "Фиксированный/длинный квант может ухудшить отзывчивость фоновых задач (запись, стрим, голос).",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт 2 на Win10 и Win11. UI «Быстродействие → Дополнительно → программ» пишет 0x26, «служб» — 0x18. Ядро учитывает только младшие 6 бит.",
+    "vendor": "any",
+    "kind": "select",
+    "options": [
+      {
+        "label": "2 — по умолчанию Windows (короткий, переменный, 3:1)",
+        "value": 2
+      },
+      {
+        "label": "0x26 (38) — то же поведение, что и 2",
+        "value": 38
+      },
+      {
+        "label": "0x28 (40) — короткий, фиксированный, 1:1",
+        "value": 40
+      },
+      {
+        "label": "0x2A (42) — короткий, фиксированный, 3:1",
+        "value": 42
+      },
+      {
+        "label": "0x18 (24) — длинный, фиксированный, 1:1 (как «фоновые службы»)",
+        "value": 24
+      }
+    ],
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\PriorityControl",
+        "name": "Win32PrioritySeparation",
+        "valueType": "DWORD",
+        "value": "{{value}}",
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Control\\PriorityControl",
+        "name": "Win32PrioritySeparation",
+        "valueType": "DWORD",
+        "value": 2,
+        "op": "set"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://technet.microsoft.com/library/Cc976120",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/research.md",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINKERNEL/README.md"
+    ]
+  },
+  {
+    "id": "scheduler.mmcss-system-responsiveness",
+    "category": "scheduler",
+    "title": "MMCSS: резерв CPU для фоновых задач",
+    "description": "SystemResponsiveness — доля CPU (%), гарантированная низкоприоритетным задачам, когда работают потоки, зарегистрированные в MMCSS. Минимально эффективное значение — 10.",
+    "recommendation": "Для игр: эксперимент — 10. Значение 0 бессмысленно (Windows приравнивает его к 20).",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft: значения кратны 10 (округление вниз), ниже 10 и выше 100 зажимаются до 20, 100 отключает MMCSS. Действует только на потоки, вызвавшие AvSetMmThreadCharacteristics (аудио, часть игр/плееров). Замеров для игр нет.",
+    "risk": "low",
+    "riskNote": "Фоновые задачи могут получать меньше CPU при активном мультимедиа.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт 20 (0x14). mmcss.sys читает значение при загрузке — нужна ли перезагрузка для изменения, НЕ ПРОВЕРЕНО.",
+    "vendor": "any",
+    "kind": "value",
+    "options": {
+      "min": 10,
+      "max": 100,
+      "default": 10
+    },
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+        "name": "SystemResponsiveness",
+        "valueType": "DWORD",
+        "value": "{{value}}",
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+        "name": "SystemResponsiveness",
+        "valueType": "DWORD",
+        "value": 20,
+        "op": "set"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/procthread/multimedia-class-scheduler-service",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/registrykeys_mmcss.txt"
+    ]
+  },
+  {
+    "id": "scheduler.mmcss-network-throttling-off",
+    "category": "scheduler",
+    "title": "MMCSS: отключить ограничение сети при воспроизведении медиа",
+    "description": "NetworkThrottlingIndex = 0xFFFFFFFF отключает ограничение NDIS (по умолчанию 10 пакетов/мс), действующее, пока играет мультимедиа под MMCSS.",
+    "recommendation": "Для игр: на пинг не влияет; включать только если важна гигабитная скорость загрузки во время музыки/видео.",
+    "evidence": "experimental",
+    "evidenceNote": "Russinovich: лимит 10 000 пакетов/с (~15 МБ/с) только во время MMCSS-воспроизведения. Игровой трафик — сотни–тысячи пакетов/с, лимит недостижим. В текущей документации MS параметр не описан.",
+    "risk": "low",
+    "riskNote": "Теоретически больше DPC сети во время воспроизведения аудио (глитчи на слабых ПК).",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт 10 (0xA).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+        "name": "NetworkThrottlingIndex",
+        "valueType": "DWORD",
+        "value": 4294967295,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+        "name": "NetworkThrottlingIndex",
+        "valueType": "DWORD",
+        "value": 10,
+        "op": "set"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/archive/blogs/markrussinovich/vista-multimedia-playback-and-network-throughput",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/registrykeys_mmcss.txt"
+    ]
+  },
+  {
+    "id": "scheduler.mmcss-games-task",
+    "category": "scheduler",
+    "title": "MMCSS: приоритет задачи «Games»",
+    "description": "Популярный набор для Tasks\\Games: Priority 6, Scheduling Category High, SFIO Priority High, GPU Priority 8. Влияет только на потоки игр, зарегистрированные в MMCSS как «Games».",
+    "recommendation": "Для игр: эксперимент; большинство игр задачу «Games» не используют.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft: GPU Priority «not yet used», SFIO Priority «not used», при Scheduling Category High поле Priority всегда считается 2. djdallmann: mmcss.sys при загрузке не читает GPU/SFIO Priority. Реально действует только Scheduling Category (High → приоритет 23–26) для зарегистрированных потоков.",
+    "risk": "medium",
+    "riskNote": "Потоки игры в категории High могут вытеснять аудио/системные потоки (треск звука, подвисания ввода).",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт: Priority 2, Scheduling Category Medium, SFIO Priority Normal, GPU Priority 8 (Win11 23H2, эта машина).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+        "name": "Priority",
+        "valueType": "DWORD",
+        "value": 6,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+        "name": "Scheduling Category",
+        "valueType": "SZ",
+        "value": "High",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+        "name": "SFIO Priority",
+        "valueType": "SZ",
+        "value": "High",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+        "name": "GPU Priority",
+        "valueType": "DWORD",
+        "value": 8,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+        "name": "Priority",
+        "valueType": "DWORD",
+        "value": 2,
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+        "name": "Scheduling Category",
+        "valueType": "SZ",
+        "value": "Medium",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+        "name": "SFIO Priority",
+        "valueType": "SZ",
+        "value": "Normal",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games",
+        "name": "GPU Priority",
+        "valueType": "DWORD",
+        "value": 8,
+        "op": "set"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/procthread/multimedia-class-scheduler-service",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/registrykeys_mmcss.txt"
+    ]
+  },
+  {
+    "id": "scheduler.mmcss-no-lazy-mode",
+    "category": "scheduler",
+    "title": "MMCSS: отключить «ленивый» режим (NoLazyMode)",
+    "description": "Недокументированный параметр MMCSS (читается mmcss.sys), по мнению сообщества отключает «ленивый» режим планировщика MMCSS.",
+    "recommendation": "Для игр: только эксперимент.",
+    "evidence": "experimental",
+    "evidenceNote": "Не документирован Microsoft; djdallmann подтверждает лишь, что mmcss.sys читает NoLazyMode/LazyModeTimeout. Замеров и описания эффекта нет.",
+    "risk": "medium",
+    "riskNote": "Неизвестный побочный эффект, возможен рост загрузки CPU службой.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт — значения нет (встроенный дефолт mmcss.sys НЕ ПРОВЕРЕН).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+        "name": "NoLazyMode",
+        "valueType": "DWORD",
+        "value": 1,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile",
+        "name": "NoLazyMode",
+        "valueType": "DWORD",
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/FINDINGS/registrykeys_mmcss.txt"
+    ]
+  },
+  {
+    "id": "scheduler.mmcss-disable",
+    "category": "scheduler",
+    "title": "Отключить службу MMCSS",
+    "description": "Отключение драйвера/службы Multimedia Class Scheduler.",
+    "recommendation": "Для игр: никогда.",
+    "evidence": "avoid",
+    "evidenceNote": "Аудиодвижок Windows и медиа-потоки теряют приоритет и защиту от глитчей; выигрыша для игр нет.",
+    "risk": "high",
+    "riskNote": "Треск/пропадание звука, проблемы с воспроизведением.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт: MMCSS — KERNEL_DRIVER, Start = 2 (Automatic).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "service",
+        "name": "MMCSS",
+        "startType": "Disabled",
+        "stop": false
+      }
+    ],
+    "revert": [
+      {
+        "type": "service",
+        "name": "MMCSS",
+        "startType": "Automatic",
+        "stop": false
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/procthread/multimedia-class-scheduler-service"
+    ]
+  },
+  {
+    "id": "scheduler.ifeo-cpu-priority-high",
+    "category": "scheduler",
+    "title": "Высокий приоритет CPU для игры (IFEO)",
+    "description": "Image File Execution Options\\<игра>.exe\\PerfOptions\\CpuPriorityClass = 3: Windows запускает выбранный exe с классом приоритета «Высокий». Значение {{value}} — имя exe.",
+    "recommendation": "Для игр: эксперимент; полезно только когда CPU загружен на 100 % фоновыми задачами.",
+    "evidence": "experimental",
+    "evidenceNote": "Механизм применяется ядром при создании процесса и работает даже для процессов, защищённых античитом от смены приоритета (Process Lasso). Значения: 1 Idle, 2 Normal, 3 High, 5 BelowNormal, 6 AboveNormal (Microsoft Q&A). Замеров прироста FPS нет.",
+    "risk": "medium",
+    "riskNote": "Голодание лаунчера/оверлеев/голосового чата; IFEO отслеживается EDR как вектор persistence; позиция Vanguard/FACEIT/EAC не опубликована (НЕ ПРОВЕРЕНО).",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Вступает в силу при следующем запуске игры. Не трогать соседние значения IFEO (Debugger, GlobalFlag, MitigationOptions).",
+    "vendor": "any",
+    "kind": "value",
+    "options": [
+      {
+        "label": "Имя исполняемого файла игры (например, cs2.exe)",
+        "value": "cs2.exe"
+      }
+    ],
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\{{value}}\\PerfOptions",
+        "name": "CpuPriorityClass",
+        "valueType": "DWORD",
+        "value": 3,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\{{value}}\\PerfOptions",
+        "name": "CpuPriorityClass",
+        "valueType": "DWORD",
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://bitsum.com/apps/process-lasso/docs/rules/priorities/",
+      "https://learn.microsoft.com/en-us/answers/questions/4362251/how-to-permanently-set-priority-processes-using-re",
+      "https://www.elastic.co/guide/en/security/master/prebuilt-rule-8-3-1-image-file-execution-options-injection.html"
+    ]
+  },
+  {
+    "id": "scheduler.ifeo-io-page-priority",
+    "category": "scheduler",
+    "title": "IFEO: IoPriority / PagePriority для игры",
+    "description": "PerfOptions\\IoPriority (0–3) и PagePriority (1–5) для exe игры.",
+    "recommendation": "Для игр: не применять.",
+    "evidence": "avoid",
+    "evidenceNote": "PagePriority 5 — уже дефолт и максимум для пользовательских процессов (повышать нечем); IoPriority 3 (High) через IFEO — НЕ ПРОВЕРЕНО, High обычно зарезервирован. Работает только понижение (для фоновых программ).",
+    "risk": "medium",
+    "riskNote": "Неверные значения ухудшают отклик игры.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Дефолт: значений нет (IoPriority 2, PagePriority 5).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://www.dumpanalysis.org/blog/index.php/2008/01/27/io-and-memory-priority-in-vista/",
+      "https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-setprocessinformation"
+    ]
+  }
+]

@@ -1,0 +1,2535 @@
+[
+  {
+    "id": "input.enhance-pointer-precision-off",
+    "category": "input",
+    "title": "Отключить «Повышенную точность указателя»",
+    "description": "Выключает программное ускорение курсора Windows (Enhance Pointer Precision): смещение курсора становится линейным и зависит только от пройденного мышью расстояния, а не от скорости движения.",
+    "recommendation": "Для игр: включить. Шутеры с raw input (CS2, Valorant, Apex и др.) ускорение и так игнорируют, но оно влияет на меню и игры с системным курсором (Dota 2, LoL, RTS).",
+    "evidence": "proven",
+    "evidenceNote": "Механизм задокументирован Microsoft: SPI_SETMOUSE задаёт два порога и коэффициент ускорения; при {0,0,0} ускорение выключено. Raw input (WM_INPUT) получает необработанные отсчёты мыши, поэтому на игры с raw input твик не влияет — эффект только там, где используется системный курсор. Это не про FPS и не про задержку, а про предсказуемость наведения.",
+    "risk": "low",
+    "riskNote": "Ничего не ломает. На рабочем столе курсор на быстрых движениях станет «медленнее» — может потребоваться поднять DPI мыши или скорость указателя.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Одинаково в Windows 10 22H2 и Windows 11. Дефолт Windows: MouseSpeed=\"1\", MouseThreshold1=\"6\", MouseThreshold2=\"10\" (REG_SZ; сверено с профилями S-1-5-19/S-1-5-20 и HKU\\.DEFAULT на 23H2). Применяется сразу через SystemParametersInfo(SPI_SETMOUSE, {0,0,0}, SPIF_UPDATEINIFILE|SPIF_SENDCHANGE).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Mouse",
+        "name": "MouseSpeed",
+        "valueType": "SZ",
+        "value": "0",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Mouse",
+        "name": "MouseThreshold1",
+        "valueType": "SZ",
+        "value": "0",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Mouse",
+        "name": "MouseThreshold2",
+        "valueType": "SZ",
+        "value": "0",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Arr(0x0004, 0, [int[]](0,0,0), 3)"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Mouse",
+        "name": "MouseSpeed",
+        "valueType": "SZ",
+        "value": "1",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Mouse",
+        "name": "MouseThreshold1",
+        "valueType": "SZ",
+        "value": "6",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Mouse",
+        "name": "MouseThreshold2",
+        "valueType": "SZ",
+        "value": "10",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Arr(0x0004, 0, [int[]](6,10,1), 3)"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKCU",
+      "path": "Control Panel\\Mouse",
+      "name": "MouseSpeed",
+      "valueType": "SZ",
+      "value": "0",
+      "op": "set",
+      "equals": "0"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow",
+      "https://learn.microsoft.com/en-us/windows/win32/dxtecharts/taking-advantage-of-high-dpi-mouse-movement",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/registry-opts.md",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json",
+      "https://discourse.codinghorror.com/t/mouse-ballistics/454"
+    ]
+  },
+  {
+    "id": "input.pointer-speed",
+    "category": "input",
+    "title": "Скорость указателя (MouseSensitivity)",
+    "description": "Множитель скорости системного курсора, 1–20 (ползунок «Скорость указателя»; 10 = середина = множитель 1.0, без масштабирования).",
+    "recommendation": "Для игр: 10 (по умолчанию). Значения выше 10 дают дробный множитель >1 и пропуск пикселей; нужную скорость лучше набирать DPI мыши. Игры с raw input этот параметр не видят.",
+    "evidence": "proven",
+    "evidenceNote": "Microsoft: SPI_SETMOUSESPEED принимает 1 (медленно)…20 (быстро), 10 — значение по умолчанию. Таблица множителей при выключенной «повышенной точности» (Liquipedia): 1→1/32, 2→1/16, 4→2/8, 6→4/8, 8→6/8, 10→1.0, 12→1.5, 14→2.0, 16→2.5, 18→3.0, 20→3.5 (нечётные — промежуточные). Ниже 10 точность не теряется (остаток накапливается), выше 10 курсор «перескакивает» пиксели.",
+    "risk": "low",
+    "riskNote": "Ничего не ломает; меняется только скорость системного курсора.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Одинаково в Windows 10/11. Дефолт: MouseSensitivity=\"10\" (REG_SZ). Применяется сразу через SPI_SETMOUSESPEED (pvParam — само число, не указатель).",
+    "vendor": "any",
+    "kind": "value",
+    "options": {
+      "min": 1,
+      "max": 20,
+      "default": 10
+    },
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Mouse",
+        "name": "MouseSensitivity",
+        "valueType": "SZ",
+        "value": "{{value}}",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x0071, 0, [System.IntPtr]{{value}}, 3)"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Mouse",
+        "name": "MouseSensitivity",
+        "valueType": "SZ",
+        "value": "10",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x0071, 0, [System.IntPtr]10, 3)"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKCU",
+      "path": "Control Panel\\Mouse",
+      "name": "MouseSensitivity",
+      "valueType": "SZ",
+      "value": "{{value}}",
+      "op": "set",
+      "equals": "{{value}}"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow",
+      "https://www.yuuza.net/Posts/windows-pointer-speed",
+      "https://liquipedia.net/counterstrike/Mouse_Settings",
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "input.smooth-mouse-curves",
+    "category": "input",
+    "title": "Правка кривых SmoothMouseXCurve/YCurve («MarkC fix»)",
+    "description": "Замена кривых ускорения в реестре ради «линейного» ускорения. В приложение не включаем; доступно только восстановление стандартных кривых.",
+    "recommendation": "Для игр: не трогать. Достаточно выключить «Повышенную точность указателя» — тогда кривые не используются вовсе.",
+    "evidence": "avoid",
+    "evidenceNote": "Кривые применяются только при включённой «повышенной точности». Фиксы эпохи XP/Vista компенсировали зависимость ускорения от частоты обновления/DPI; при выключенном EPP они бесполезны. Ошибочные бинарные значения дают непредсказуемое поведение курсора.",
+    "risk": "medium",
+    "riskNote": "Неверные 40-байтовые значения ломают поведение курсора при включённом EPP; восстановление требует повторного входа в систему.",
+    "reboot": "logoff",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Стандартные значения одинаковы в Windows 10/11 (сверено: HKU\\.DEFAULT, S-1-5-19, S-1-5-20 на 23H2). Это 5 точек по 8 байт (16.16 fixed-point, little-endian). Публичного SPI для кривых нет — применяются при входе.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Mouse",
+        "name": "SmoothMouseXCurve",
+        "valueType": "BINARY",
+        "value": "0000000000000000156E000000000000004001000000000029DC0300000000000000280000000000",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Mouse",
+        "name": "SmoothMouseYCurve",
+        "valueType": "BINARY",
+        "value": "0000000000000000FD11010000000000002404000000000000FC12000000000000C0BB0100000000",
+        "op": "set"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://discourse.codinghorror.com/t/mouse-ballistics/454",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/registry-opts.md"
+    ]
+  },
+  {
+    "id": "input.mouse-data-queue-size",
+    "category": "input",
+    "title": "MouseDataQueueSize (размер буфера мыши)",
+    "description": "Размер кольцевого буфера событий драйвера mouclass. Популярный «твик» уменьшает его (16–50) якобы ради меньшей задержки. Не включаем; доступно только удаление значения.",
+    "recommendation": "Для игр: не трогать. Если значение уже кто-то менял — вернуть по умолчанию (удалить).",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft описывает параметр как число буферизуемых событий (MOUSE_INPUT_DATA, 24 байта на событие; дефолт 100) и советует увеличивать его только при переполнении буфера. События сразу забираются потоком ввода (RIT), поэтому размер очереди не меняет скорость доставки; djdallmann замерил лишь объём пула (100×24 = 2400 байт). Воспроизводимых замеров снижения задержки нет. Слишком малое значение при опросе 1–8 кГц и кратковременной задержке RIT ведёт к переполнению и потере событий (рывки, «пропуски»).",
+    "risk": "medium",
+    "riskNote": "Малые значения — риск потери событий мыши; изменение требует перезагрузки.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "По умолчанию значение в HKLM\\SYSTEM\\CurrentControlSet\\Services\\mouclass\\Parameters ОТСУТСТВУЕТ (драйвер использует 100): на Win11 23H2 нет даже ключа Parameters; djdallmann сообщает то же для Win10. Поэтому revert = удаление значения.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Services\\mouclass\\Parameters",
+        "name": "MouseDataQueueSize",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc775532(v=ws.10)",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINDRIVERS/README.md"
+    ]
+  },
+  {
+    "id": "input.keyboard-data-queue-size",
+    "category": "input",
+    "title": "KeyboardDataQueueSize (размер буфера клавиатуры)",
+    "description": "Размер кольцевого буфера событий драйвера kbdclass. Уменьшение рекламируется как снижение задержки. Не включаем; доступно только восстановление значения 100.",
+    "recommendation": "Для игр: не трогать. Если менялось — вернуть 100.",
+    "evidence": "avoid",
+    "evidenceNote": "Буфер на 100 событий KEYBOARD_INPUT_DATA (12 байт; 1200 байт пула — djdallmann). Сотрудник Microsoft (M. Kaplan) поясняет: это очередь драйвера, считающая отдельные события нажатия/отпускания; поток RIT разбирает её сразу. Доказательств влияния на задержку нет; слишком малое значение может терять нажатия при всплесках (макросы, NKRO, высокий polling).",
+    "risk": "medium",
+    "riskNote": "Малые значения — риск потери нажатий; изменение требует перезагрузки.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "В Win11 23H2 значение присутствует по умолчанию: kbdclass\\Parameters\\KeyboardDataQueueSize = 100 (0x64, REG_DWORD) — прочитано на машине разработчика; в Win10 аналогично (djdallmann).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Services\\kbdclass\\Parameters",
+        "name": "KeyboardDataQueueSize",
+        "valueType": "DWORD",
+        "value": 100,
+        "op": "set"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/WINDRIVERS/README.md",
+      "https://archives.miloush.net/michkap/archive/2006/10/03/786095.html",
+      "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2003/cc775532(v=ws.10)"
+    ]
+  },
+  {
+    "id": "input.keyboard-repeat-delay",
+    "category": "input",
+    "title": "Задержка перед автоповтором клавиш",
+    "description": "Сколько держать клавишу, прежде чем начнётся автоповтор символа (0 ≈ 250 мс … 3 ≈ 1 с).",
+    "recommendation": "Для игр: на управление в играх обычно не влияет (игры читают нажатие/отпускание). Минимальная задержка (0) удобна в чате и консоли.",
+    "evidence": "proven",
+    "evidenceNote": "Документировано Microsoft (SPI_SETKEYBOARDDELAY: 0…3, ≈250 мс…1 с). Эффект реальный, но касается только автоповтора символов (текст, консоль, меню), а не опроса клавиатуры и не задержки ввода в играх.",
+    "risk": "low",
+    "riskNote": "При значении 0 легче случайно напечатать повтор символа.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Одинаково в Windows 10/11. Дефолт: KeyboardDelay=\"1\" (REG_SZ). Применяется сразу через SPI_SETKEYBOARDDELAY (значение в uiParam).",
+    "vendor": "any",
+    "kind": "select",
+    "options": [
+      {
+        "label": "≈250 мс (0) — рекомендуется",
+        "value": 0
+      },
+      {
+        "label": "≈500 мс (1) — по умолчанию Windows",
+        "value": 1
+      },
+      {
+        "label": "≈750 мс (2)",
+        "value": 2
+      },
+      {
+        "label": "≈1 с (3)",
+        "value": 3
+      }
+    ],
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Keyboard",
+        "name": "KeyboardDelay",
+        "valueType": "SZ",
+        "value": "{{value}}",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x0017, {{value}}, [System.IntPtr]::Zero, 3)"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Keyboard",
+        "name": "KeyboardDelay",
+        "valueType": "SZ",
+        "value": "1",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x0017, 1, [System.IntPtr]::Zero, 3)"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKCU",
+      "path": "Control Panel\\Keyboard",
+      "name": "KeyboardDelay",
+      "valueType": "SZ",
+      "value": "{{value}}",
+      "op": "set",
+      "equals": "{{value}}"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "input.keyboard-repeat-rate",
+    "category": "input",
+    "title": "Скорость автоповтора клавиш",
+    "description": "Частота повторения символа при удержании клавиши: 0 ≈ 2,5 повтора/с … 31 ≈ 30 повторов/с.",
+    "recommendation": "Для игр: 31 (максимум). Это и есть значение Windows по умолчанию — менять нужно, только если его кто-то занизил.",
+    "evidence": "proven",
+    "evidenceNote": "Документировано Microsoft (SPI_SETKEYBOARDSPEED: 0…31, значения >31 обрезаются до 31). Влияет только на автоповтор символов, не на задержку ввода в играх.",
+    "risk": "low",
+    "riskNote": "Нет.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Одинаково в Windows 10/11. Дефолт: KeyboardSpeed=\"31\" (REG_SZ). Применяется сразу через SPI_SETKEYBOARDSPEED (значение в uiParam).",
+    "vendor": "any",
+    "kind": "value",
+    "options": {
+      "min": 0,
+      "max": 31,
+      "default": 31
+    },
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Keyboard",
+        "name": "KeyboardSpeed",
+        "valueType": "SZ",
+        "value": "{{value}}",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x000B, {{value}}, [System.IntPtr]::Zero, 3)"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Keyboard",
+        "name": "KeyboardSpeed",
+        "valueType": "SZ",
+        "value": "31",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x000B, 31, [System.IntPtr]::Zero, 3)"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKCU",
+      "path": "Control Panel\\Keyboard",
+      "name": "KeyboardSpeed",
+      "valueType": "SZ",
+      "value": "{{value}}",
+      "op": "set",
+      "equals": "{{value}}"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow"
+    ]
+  },
+  {
+    "id": "input.sticky-keys-hotkey-off",
+    "category": "input",
+    "title": "Отключить вызов «Залипания клавиш» (5×Shift)",
+    "description": "Снимает флаг SKF_HOTKEYACTIVE: пятикратное нажатие Shift больше не открывает окно «Залипание клавиш» поверх игры. Сама функция остаётся доступной в настройках.",
+    "recommendation": "Для игр: включить. Окно 5×Shift сворачивает полноэкранные игры и мешает в играх, где Shift — бег/присед.",
+    "evidence": "proven",
+    "evidenceNote": "Флаги задокументированы Microsoft (STICKYKEYS.dwFlags). Дефолт 510 = 0x1FE; 506 = 510 без SKF_HOTKEYACTIVE (0x4). Тот же вариант используют valleyofdoom/PC-Tuning и winutil (в winutil тип ошибочно DWORD — правильно REG_SZ).",
+    "risk": "low",
+    "riskNote": "Людям, которым нужна функция, придётся включать её через «Параметры → Специальные возможности → Клавиатура».",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Одинаково в Windows 10/11. Дефолт: HKCU\\Control Panel\\Accessibility\\StickyKeys\\Flags = \"510\" (REG_SZ; сверено с S-1-5-19/20 и .DEFAULT). Применяется сразу через SPI_SETSTICKYKEYS.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Accessibility\\StickyKeys",
+        "name": "Flags",
+        "valueType": "SZ",
+        "value": "506",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; $k=[int[]](8,0); [void][HzSpi.U]::Arr(0x003A, 8, $k, 0); $k[1]=506; [void][HzSpi.U]::Arr(0x003B, 8, $k, 3)"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Accessibility\\StickyKeys",
+        "name": "Flags",
+        "valueType": "SZ",
+        "value": "510",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; $k=[int[]](8,0); [void][HzSpi.U]::Arr(0x003A, 8, $k, 0); $k[1]=510; [void][HzSpi.U]::Arr(0x003B, 8, $k, 3)"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKCU",
+      "path": "Control Panel\\Accessibility\\StickyKeys",
+      "name": "Flags",
+      "valueType": "SZ",
+      "value": "506",
+      "op": "set",
+      "equals": "506"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-stickykeys",
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/registry-opts.md",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "input.filter-keys-hotkey-off",
+    "category": "input",
+    "title": "Отключить вызов «Фильтрации ввода» (удержание правого Shift 8 с)",
+    "description": "Снимает флаг FKF_HOTKEYACTIVE: долгое удержание правого Shift больше не включает фильтрацию ввода и не показывает окно поверх игры.",
+    "recommendation": "Для игр: включить, особенно если Shift используется как «удерживаемая» клавиша (бег, прицел).",
+    "evidence": "proven",
+    "evidenceNote": "Флаги задокументированы Microsoft (FILTERKEYS.dwFlags; горячая клавиша — правый Shift 8 секунд). Дефолт 126 = 0x7E; 122 = 126 без FKF_HOTKEYACTIVE (0x4). Поля задержек (1000/1000/500/0 мс) не меняются.",
+    "risk": "low",
+    "riskNote": "Функцию можно включить вручную в настройках специальных возможностей.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Одинаково в Windows 10/11. Дефолт: HKCU\\Control Panel\\Accessibility\\Keyboard Response\\Flags = \"126\" (REG_SZ). Применяется сразу через SPI_SETFILTERKEYS (структура 24 байта; читаем текущую через SPI_GETFILTERKEYS и меняем только флаги).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Accessibility\\Keyboard Response",
+        "name": "Flags",
+        "valueType": "SZ",
+        "value": "122",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; $k=[int[]](24,0,0,0,0,0); [void][HzSpi.U]::Arr(0x0032, 24, $k, 0); $k[1]=122; [void][HzSpi.U]::Arr(0x0033, 24, $k, 3)"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Accessibility\\Keyboard Response",
+        "name": "Flags",
+        "valueType": "SZ",
+        "value": "126",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; $k=[int[]](24,0,0,0,0,0); [void][HzSpi.U]::Arr(0x0032, 24, $k, 0); $k[1]=126; [void][HzSpi.U]::Arr(0x0033, 24, $k, 3)"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKCU",
+      "path": "Control Panel\\Accessibility\\Keyboard Response",
+      "name": "Flags",
+      "valueType": "SZ",
+      "value": "122",
+      "op": "set",
+      "equals": "122"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-filterkeys",
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow"
+    ]
+  },
+  {
+    "id": "input.toggle-keys-hotkey-off",
+    "category": "input",
+    "title": "Отключить вызов «Озвучивания переключения» (удержание Num Lock)",
+    "description": "Снимает флаг TKF_HOTKEYACTIVE: удержание Num Lock больше не включает звуковые сигналы Caps/Num/Scroll Lock.",
+    "recommendation": "Для игр: по желанию — случайное срабатывание редкое, но вреда от отключения нет.",
+    "evidence": "proven",
+    "evidenceNote": "Флаги задокументированы Microsoft (TOGGLEKEYS.dwFlags; горячая клавиша — Num Lock). Дефолт 62 = 0x3E; 58 = 62 без TKF_HOTKEYACTIVE (0x4).",
+    "risk": "low",
+    "riskNote": "Нет.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Одинаково в Windows 10/11. Дефолт: HKCU\\Control Panel\\Accessibility\\ToggleKeys\\Flags = \"62\" (REG_SZ). Применяется сразу через SPI_SETTOGGLEKEYS.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Accessibility\\ToggleKeys",
+        "name": "Flags",
+        "valueType": "SZ",
+        "value": "58",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; $k=[int[]](8,0); [void][HzSpi.U]::Arr(0x0034, 8, $k, 0); $k[1]=58; [void][HzSpi.U]::Arr(0x0035, 8, $k, 3)"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Accessibility\\ToggleKeys",
+        "name": "Flags",
+        "valueType": "SZ",
+        "value": "62",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; $k=[int[]](8,0); [void][HzSpi.U]::Arr(0x0034, 8, $k, 0); $k[1]=62; [void][HzSpi.U]::Arr(0x0035, 8, $k, 3)"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKCU",
+      "path": "Control Panel\\Accessibility\\ToggleKeys",
+      "name": "Flags",
+      "valueType": "SZ",
+      "value": "58",
+      "op": "set",
+      "equals": "58"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-togglekeys",
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow"
+    ]
+  },
+  {
+    "id": "input.mouse-keys-hotkey-off",
+    "category": "input",
+    "title": "Отключить вызов «Управления указателем с клавиатуры» (Alt+Shift+Num Lock)",
+    "description": "Снимает флаг MKF_HOTKEYACTIVE: сочетание левый Alt + левый Shift + Num Lock больше не включает управление курсором с цифрового блока.",
+    "recommendation": "Для игр: по желанию — полезно, если на эти клавиши назначены действия.",
+    "evidence": "proven",
+    "evidenceNote": "Флаги задокументированы Microsoft (MOUSEKEYS.dwFlags; горячая клавиша — LEFT ALT+LEFT SHIFT+NUM LOCK). Дефолт 62 = 0x3E; 58 = без MKF_HOTKEYACTIVE (0x4).",
+    "risk": "low",
+    "riskNote": "Нет.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Одинаково в Windows 10/11. Дефолт: HKCU\\Control Panel\\Accessibility\\MouseKeys\\Flags = \"62\" (REG_SZ). Применяется через SPI_SETMOUSEKEYS (структура 28 байт; читаем текущую и меняем флаги).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Accessibility\\MouseKeys",
+        "name": "Flags",
+        "valueType": "SZ",
+        "value": "58",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; $k=[int[]](28,0,0,0,0,0,0); [void][HzSpi.U]::Arr(0x0036, 28, $k, 0); $k[1]=58; $k[5]=0; $k[6]=0; [void][HzSpi.U]::Arr(0x0037, 28, $k, 3)"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Accessibility\\MouseKeys",
+        "name": "Flags",
+        "valueType": "SZ",
+        "value": "62",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; $k=[int[]](28,0,0,0,0,0,0); [void][HzSpi.U]::Arr(0x0036, 28, $k, 0); $k[1]=62; $k[5]=0; $k[6]=0; [void][HzSpi.U]::Arr(0x0037, 28, $k, 3)"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKCU",
+      "path": "Control Panel\\Accessibility\\MouseKeys",
+      "name": "Flags",
+      "valueType": "SZ",
+      "value": "58",
+      "op": "set",
+      "equals": "58"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-mousekeys",
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow"
+    ]
+  },
+  {
+    "id": "input.language-switch-hotkey-off",
+    "category": "input",
+    "title": "Отключить смену раскладки по Alt+Shift / Ctrl+Shift",
+    "description": "Отключает сочетания переключения языка ввода и раскладки (Toggle = 3 «нет»), чтобы в игре случайный Alt+Shift или Ctrl+Shift не переключал раскладку. Win+Пробел продолжает работать.",
+    "recommendation": "Для игр: включить, если в играх используются Shift+Alt/Ctrl (бег + действие) и раскладка «съезжает» на русскую.",
+    "evidence": "situational",
+    "evidenceNote": "Механизм документирован Microsoft: SPI_SETLANGTOGGLE перечитывает HKCU\\Keyboard Layout\\Toggle, допустимые значения \"1\" = Alt+Shift, \"2\" = Ctrl+Shift, \"3\" = нет. Помогает только если переключение реально мешает (игры с привязкой к символам/VK, чат); игры с raw input/скан-кодами раскладку не замечают.",
+    "risk": "low",
+    "riskNote": "Пропадает привычное переключение Alt+Shift; остаётся Win+Пробел и переключатель на панели задач.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Значения REG_SZ: \"Hotkey\" (устаревший), \"Language Hotkey\", \"Layout Hotkey\". Дефолт для en-US: 1/1/2. НЕ ПРОВЕРЕНО для ru-RU: на машине разработчика HKU\\.DEFAULT = 2/2/1, а у пользователя 1/1/3 — дефолт зависит от OOBE/локали. Перед применением обязательно сохранить текущие значения (бэкап) и при откате восстанавливать их; revert ниже — значения en-US.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Keyboard Layout\\Toggle",
+        "name": "Hotkey",
+        "valueType": "SZ",
+        "value": "3",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Keyboard Layout\\Toggle",
+        "name": "Language Hotkey",
+        "valueType": "SZ",
+        "value": "3",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Keyboard Layout\\Toggle",
+        "name": "Layout Hotkey",
+        "valueType": "SZ",
+        "value": "3",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x005B, 0, [System.IntPtr]::Zero, 0)"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Keyboard Layout\\Toggle",
+        "name": "Hotkey",
+        "valueType": "SZ",
+        "value": "1",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Keyboard Layout\\Toggle",
+        "name": "Language Hotkey",
+        "valueType": "SZ",
+        "value": "1",
+        "op": "set"
+      },
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Keyboard Layout\\Toggle",
+        "name": "Layout Hotkey",
+        "valueType": "SZ",
+        "value": "2",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x005B, 0, [System.IntPtr]::Zero, 0)"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKCU",
+      "path": "Keyboard Layout\\Toggle",
+      "name": "Language Hotkey",
+      "valueType": "SZ",
+      "value": "3",
+      "op": "set",
+      "equals": "3"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow"
+    ]
+  },
+  {
+    "id": "input.foreground-lock-timeout",
+    "category": "input",
+    "title": "ForegroundLockTimeout = 0 («мгновенный фокус»)",
+    "description": "Популярный твик обнуляет время, в течение которого Windows запрещает фоновым программам перехватывать фокус. Не включаем; доступно только восстановление стандартного значения.",
+    "recommendation": "Для игр: не трогать. Значение 0 позволяет всплывающим окнам отбирать фокус у полноэкранной игры (сворачивание, «вылет» на рабочий стол).",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: SPI_SETFOREGROUNDLOCKTIMEOUT — время после ввода пользователя, в течение которого приложениям нельзя выходить на передний план. Обнуление ничего не ускоряет, а снимает защиту от кражи фокуса. На машине разработчика SPI_GETFOREGROUNDLOCKTIMEOUT вернул 2147483647 при значении реестра 200000 — значение может меняться в рантайме программами/системой (НЕ ПРОВЕРЕНО, чем именно).",
+    "risk": "medium",
+    "riskNote": "При 0 — сворачивание игр из-за всплывающих окон. Восстановление безопасно.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: HKCU\\Control Panel\\Desktop\\ForegroundLockTimeout = 200000 (REG_DWORD, 0x30D40; сверено с S-1-5-19/20). SPI_SETFOREGROUNDLOCKTIMEOUT срабатывает, только если вызывающий поток может менять активное окно; иначе значение применится после повторного входа.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Desktop",
+        "name": "ForegroundLockTimeout",
+        "valueType": "DWORD",
+        "value": 200000,
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x2001, 0, [System.IntPtr]200000, 3)"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow"
+    ]
+  },
+  {
+    "id": "input.menu-show-delay",
+    "category": "input",
+    "title": "Задержка открытия подменю (MenuShowDelay)",
+    "description": "Время (мс) до раскрытия вложенного меню при наведении курсора. Уменьшение делает меню Windows «отзывчивее».",
+    "recommendation": "Для игр: на игры не влияет — чисто интерфейсная настройка. Комфортно 100–200 мс; 0 — меню открываются при случайном проведении курсора.",
+    "evidence": "proven",
+    "evidenceNote": "Документировано Microsoft (SPI_SETMENUSHOWDELAY — задержка показа подменю). Эффект виден сразу, но касается только меню Windows/Win32-приложений; FPS и задержку ввода в играх не меняет.",
+    "risk": "low",
+    "riskNote": "Нет.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: HKCU\\Control Panel\\Desktop\\MenuShowDelay = \"400\" (REG_SZ; сверено с S-1-5-19/20; winutil указывает то же). Применяется сразу через SPI_SETMENUSHOWDELAY (значение в uiParam).",
+    "vendor": "any",
+    "kind": "value",
+    "options": {
+      "min": 0,
+      "max": 1000,
+      "default": 400
+    },
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Desktop",
+        "name": "MenuShowDelay",
+        "valueType": "SZ",
+        "value": "{{value}}",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x006B, {{value}}, [System.IntPtr]::Zero, 3)"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKCU",
+        "path": "Control Panel\\Desktop",
+        "name": "MenuShowDelay",
+        "valueType": "SZ",
+        "value": "400",
+        "op": "set"
+      },
+      {
+        "type": "powershell",
+        "script": "$t='HzSpi.U' -as [type]; if (-not $t) { Add-Type -Namespace HzSpi -Name U -MemberDefinition '[DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Arr(uint a, uint b, int[] c, uint d); [DllImport(\"user32.dll\", EntryPoint=\"SystemParametersInfoW\", SetLastError=true)] public static extern bool Ptr(uint a, uint b, System.IntPtr c, uint d);' }; [void][HzSpi.U]::Ptr(0x006B, 400, [System.IntPtr]::Zero, 3)"
+      }
+    ],
+    "detect": {
+      "type": "reg",
+      "hive": "HKCU",
+      "path": "Control Panel\\Desktop",
+      "name": "MenuShowDelay",
+      "valueType": "SZ",
+      "value": "{{value}}",
+      "op": "set",
+      "equals": "{{value}}"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-systemparametersinfow",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "input.usb-power-saving-off",
+    "category": "input",
+    "title": "Запретить Windows отключать USB/HID-устройства для экономии энергии",
+    "description": "Снимает галочку «Разрешить отключение этого устройства для экономии энергии» (WMI MSPower_DeviceEnable) у USB-контроллеров, корневых концентраторов и USB/HID-устройств.",
+    "recommendation": "Для игр: включить, если беспроводной донгл мыши/гарнитуры, USB-ЦАП или хаб «засыпает», отваливается или долго просыпается. Для проводной мыши в активной игре заметного эффекта нет.",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft: для HID-устройств USB selective suspend по умолчанию ВЫКЛЮЧЕН (input.inf пишет SelectiveSuspendEnabled=00), поэтому активная проводная мышь/клавиатура и так не усыпляется. Галочка влияет на простаивающие устройства, хабы и контроллеры (WDF IdleInWorkingState). Помогает при выпадениях/долгом пробуждении донглов и USB-аудио; замеров снижения задержки для проводных HID нет. Метод — тот же WMI, что в valleyofdoom/PC-Tuning (раздел Device Power-Saving).",
+    "risk": "low",
+    "riskNote": "Немного выше энергопотребление (ноутбуки). После переподключения устройства Windows может снова включить галочку — твик нужно переприменять. Требуется Windows PowerShell 5.1 (Get-WmiObject).",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт для устройств с поддержкой простоя — Enable=True (на машине разработчика так у хабов, xHCI и HID-интерфейсов). Применение сохраняет исходные значения в %ProgramData%\\hateeze\\backup\\input.usb-power-saving-off.json; откат восстанавливает их, а при отсутствии бэкапа ставит True.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$bk=Join-Path $env:ProgramData 'hateeze\\backup'; New-Item -ItemType Directory -Force -Path $bk | Out-Null; $f=Join-Path $bk 'input.usb-power-saving-off.json'; $ids=@(Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue | Where-Object { @('USB','HIDClass','Mouse','Keyboard') -contains $_.Class } | ForEach-Object { $_.InstanceId.ToUpperInvariant() }); $inst=@(Get-WmiObject -Namespace root\\wmi -Class MSPower_DeviceEnable -ErrorAction SilentlyContinue | Where-Object { $ids -contains ($_.InstanceName -replace '_\\d+$','').ToUpperInvariant() }); if (-not (Test-Path $f)) { @($inst | ForEach-Object { [pscustomobject]@{ InstanceName = $_.InstanceName; Enable = [bool]$_.Enable } }) | ConvertTo-Json -Depth 3 | Set-Content -Path $f -Encoding UTF8 }; foreach ($i in $inst) { if ($i.Enable) { $i.Enable = $false; [void]$i.psbase.Put() } }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$f=Join-Path $env:ProgramData 'hateeze\\backup\\input.usb-power-saving-off.json'; $map=@{}; if (Test-Path $f) { foreach ($e in @(Get-Content -Raw -Path $f | ConvertFrom-Json)) { $map[$e.InstanceName.ToUpperInvariant()] = [bool]$e.Enable } }; $ids=@(Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue | Where-Object { @('USB','HIDClass','Mouse','Keyboard') -contains $_.Class } | ForEach-Object { $_.InstanceId.ToUpperInvariant() }); $inst=@(Get-WmiObject -Namespace root\\wmi -Class MSPower_DeviceEnable -ErrorAction SilentlyContinue | Where-Object { $ids -contains ($_.InstanceName -replace '_\\d+$','').ToUpperInvariant() }); foreach ($i in $inst) { $want=$true; $k=$i.InstanceName.ToUpperInvariant(); if ($map.ContainsKey($k)) { $want=$map[$k] }; if ([bool]$i.Enable -ne $want) { $i.Enable = $want; [void]$i.psbase.Put() } }; if (Test-Path $f) { Remove-Item -Path $f -Force }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$ids=@(Get-PnpDevice -PresentOnly -ErrorAction SilentlyContinue | Where-Object { @('USB','HIDClass','Mouse','Keyboard') -contains $_.Class } | ForEach-Object { $_.InstanceId.ToUpperInvariant() }); $inst=@(Get-WmiObject -Namespace root\\wmi -Class MSPower_DeviceEnable -ErrorAction SilentlyContinue | Where-Object { $ids -contains ($_.InstanceName -replace '_\\d+$','').ToUpperInvariant() }); if ($inst.Count -gt 0 -and -not ($inst | Where-Object { $_.Enable })) { '1' } else { '0' }",
+      "equals": "1"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/hid/selective-suspend-for-hid-over-usb-devices",
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/usbcon/usb-selective-suspend",
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "input.usb-selective-suspend-plan",
+    "category": "input",
+    "title": "Выключить «Временное отключение USB-порта» в схеме питания (от сети)",
+    "description": "Параметр схемы питания USB selective suspend: запрещает USB-хабу усыплять простаивающие порты при питании от сети. От батареи значение не меняется.",
+    "recommendation": "Для игр: включить на ПК, если USB-устройства (донглы, ЦАП, хабы) отваливаются или просыпаются с задержкой. На проводную мышь в игре не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "Документированный параметр схемы питания (подгруппа USB 2a737441-…, настройка 48e6b7a6-…). Активные HID-устройства и так не усыпляются (HID selective suspend выключен по умолчанию), поэтому выигрыш — только стабильность простаивающих устройств. Замеров снижения задержки нет. Возможное пересечение с разделом «питание» другого исследователя — согласовать id.",
+    "risk": "low",
+    "riskNote": "Чуть выше потребление от сети. На ноутбуке от батареи не меняется.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт в «Сбалансированной» и «Высокой производительности»: AC=1, DC=1 (прочитано powercfg на 23H2). Официального алиаса powercfg нет — использовать GUID; поле alias только для отображения. Применяется к активной схеме.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "2a737441-1930-4402-8d77-b2bebba308a3",
+        "setting": "48e6b7a6-50f5-4782-a5d4-53bb8f07e226",
+        "alias": "USB_SELECTIVE_SUSPEND",
+        "ac": 0,
+        "dc": 1
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "2a737441-1930-4402-8d77-b2bebba308a3",
+        "setting": "48e6b7a6-50f5-4782-a5d4-53bb8f07e226",
+        "alias": "USB_SELECTIVE_SUSPEND",
+        "ac": 1,
+        "dc": 1
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/usbcon/usb-selective-suspend",
+      "https://learn.microsoft.com/en-us/windows/win32/power/power-setting-guids",
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/hid/selective-suspend-for-hid-over-usb-devices"
+    ]
+  },
+  {
+    "id": "input.hid-selective-suspend-registry",
+    "category": "input",
+    "title": "Ручная правка SelectiveSuspendEnabled / EnhancedPowerManagementEnabled / AllowIdleIrpInD3 по всем устройствам",
+    "description": "Массовая запись этих значений в Enum\\USB\\…\\Device Parameters, распространённая в твикерах. Не включаем.",
+    "recommendation": "Для игр: не делать. Для HID selective suspend уже выключен по умолчанию; пользовательский переключатель — твик input.usb-power-saving-off.",
+    "evidence": "avoid",
+    "evidenceNote": "input.inf (Win11 23H2) для всех стандартных HID пишет SelectiveSuspendEnabled=REG_BINARY 00, EnhancedPowerManagementEnabled=1, AllowIdleIrpInD3=1; Microsoft прямо пишет, что selective suspend для HID выключен по умолчанию. Значения EnhancedPowerManagementEnabled и DeviceSelectiveSuspended Microsoft публично не документирует (НЕ ПРОВЕРЕНО, на что они влияют); DeviceSelectiveSuspended на машине разработчика вообще отсутствует. Массовая запись с неверным типом (DWORD вместо BINARY) или в чужие устройства — риск нестабильности при нулевом доказанном эффекте.",
+    "risk": "medium",
+    "riskNote": "Неверные типы/значения в ключах устройств; эффект только после переподключения/перезагрузки; сложно откатить без бэкапа.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/hid/selective-suspend-for-hid-over-usb-devices",
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/usbcon/usb-selective-suspend"
+    ]
+  },
+  {
+    "id": "input.xhci-imod-disable",
+    "category": "input",
+    "title": "Отключение XHCI Interrupt Moderation (IMOD)",
+    "description": "Запись регистров IMOD USB-контроллера через утилиты прямого доступа к памяти (RWEverything и т.п.). Не включаем.",
+    "recommendation": "Для игр: не делать в приложении. Это эксперимент для энтузиастов с 4–8 кГц мышами, проверяемый MouseTester.",
+    "evidence": "avoid",
+    "evidenceNote": "valleyofdoom: современные Windows используют интервал IMOD 0,05 мс (50 мкс), Windows 7 — 1 мс; проблема реальна только при очень высоком polling и нескольких устройствах на одном контроллере. Изменение требует загрузки драйвера с произвольным доступом к памяти — такие драйверы блокируются античитами (Vanguard, FACEIT) и списками уязвимых драйверов Microsoft, значение не сохраняется после перезагрузки.",
+    "risk": "high",
+    "riskNote": "Античит-баны/блокировка запуска игр, BSOD при ошибке адреса, необходимость автозапуска утилиты.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://github.com/valleyofdoom/PC-Tuning",
+      "https://github.com/BoringBoredom/PC-Optimization-Hub/blob/main/content/xhci%20imod/xhci%20imod.md"
+    ]
+  },
+  {
+    "id": "network.tcp-ack-frequency",
+    "category": "network",
+    "title": "Немедленные TCP-подтверждения (TcpAckFrequency = 1)",
+    "description": "Отключает отложенные ACK на физических сетевых интерфейсах: каждый входящий TCP-сегмент подтверждается сразу. Половина популярного «отключения Nagle».",
+    "recommendation": "Для игр: только для игр с игровым трафиком по TCP (World of Warcraft, Minecraft Java, Path of Exile, ряд MMO). CS2, Valorant, Dota 2, Fortnite, Apex, PUBG, Overwatch и матч LoL используют UDP — для них бесполезно.",
+    "evidence": "situational",
+    "evidenceNote": "Параметр задокументирован Microsoft (KB 328890): REG_DWORD 0–255, по умолчанию 2; 1 = подтверждать каждый сегмент без ожидания таймера отложенного ACK (в шаблоне Internet Win11 23H2 таймер = 40 мс, Get-NetTCPSetting). Влияет только на TCP; если сервер отправляет мелкие пакеты с алгоритмом Нейгла, быстрый ACK уменьшает «залипание» до ~таймера. Публичных воспроизводимых замеров для игр нет; Microsoft не рекомендует менять без анализа.",
+    "risk": "low",
+    "riskNote": "Больше ACK-пакетов при скачиваниях (до ~2×), немного выше нагрузка на CPU/сеть; функциональность не ломается.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Путь: HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces\\{GUID адаптера}; по умолчанию значения нет (прочитано на 23H2). Только IPv4-ключ (для Tcpip6 НЕ ПРОВЕРЕНО). Альтернатива на уровне шаблона: netsh int tcp set supplemental template=internet delayedackfrequency=1 (эквивалентность НЕ ПРОВЕРЕНА).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$b='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=Join-Path $b $a.InterfaceGuid; if (Test-Path $p) { New-ItemProperty -Path $p -Name 'TcpAckFrequency' -PropertyType DWord -Value 1 -Force | Out-Null } }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$b='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; Get-ChildItem -Path $b -ErrorAction SilentlyContinue | ForEach-Object { Remove-ItemProperty -Path $_.PSPath -Name 'TcpAckFrequency' -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$b='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; $n=0; $ok=0; foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=Join-Path $b $a.InterfaceGuid; if (Test-Path $p) { $n++; if ((Get-ItemProperty -Path $p -ErrorAction SilentlyContinue).'TcpAckFrequency' -eq 1) { $ok++ } } }; if ($n -gt 0 -and $ok -eq $n) { '1' } else { '0' }",
+      "equals": "1"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/registry-entry-control-tcp-acknowledgment-behavior",
+      "https://learn.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting"
+    ]
+  },
+  {
+    "id": "network.tcp-nodelay-registry",
+    "category": "network",
+    "title": "TCPNoDelay = 1 в реестре интерфейса",
+    "description": "Вторая половина «отключения Nagle»: значение TCPNoDelay в ключе интерфейса. Алгоритм Нейгла на самом деле включается/выключается приложением для каждого сокета (TCP_NODELAY).",
+    "recommendation": "Для игр: эксперимент, только для TCP-игр. Для UDP-игр эффекта нет точно.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft не документирует TCPNoDelay в Tcpip\\Parameters\\Interfaces для современных Windows (документирован лишь TCPNoDelay для MSMQ). Читает ли его стек Win10/11 — НЕ ПРОВЕРЕНО; игры, которым важна задержка, сами ставят TCP_NODELAY на сокет (например, опция WoW «Optimize network for speed»). Замеров нет.",
+    "risk": "low",
+    "riskNote": "При реальном действии — больше мелких пакетов в TCP-трафике; функциональность не ломается.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. По умолчанию значения нет.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$b='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=Join-Path $b $a.InterfaceGuid; if (Test-Path $p) { New-ItemProperty -Path $p -Name 'TCPNoDelay' -PropertyType DWord -Value 1 -Force | Out-Null } }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$b='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; Get-ChildItem -Path $b -ErrorAction SilentlyContinue | ForEach-Object { Remove-ItemProperty -Path $_.PSPath -Name 'TCPNoDelay' -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$b='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; $n=0; $ok=0; foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=Join-Path $b $a.InterfaceGuid; if (Test-Path $p) { $n++; if ((Get-ItemProperty -Path $p -ErrorAction SilentlyContinue).'TCPNoDelay' -eq 1) { $ok++ } } }; if ($n -gt 0 -and $ok -eq $n) { '1' } else { '0' }",
+      "equals": "1"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/registry-entry-control-tcp-acknowledgment-behavior"
+    ]
+  },
+  {
+    "id": "network.tcp-delack-ticks",
+    "category": "network",
+    "title": "TcpDelAckTicks (устаревший таймер отложенного ACK)",
+    "description": "Значение из гайдов эпохи Windows 2000/XP для изменения таймера отложенного ACK. Не включаем; доступно только удаление.",
+    "recommendation": "Для игр: не использовать. Для TCP-игр см. TcpAckFrequency.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft упоминает TcpDelAckTicks только для Windows 2000 (для XP/2003 предлагается TcpAckFrequency). В современном стеке таймер задаётся шаблонами (netsh supplemental delayedacktimeout, в Win11 23H2 — 40 мс). Читается ли значение в Win10/11 — НЕ ПРОВЕРЕНО.",
+    "risk": "low",
+    "riskNote": "Вероятно, ничего не делает; мусор в реестре.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. По умолчанию значения нет.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$b='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces'; Get-ChildItem -Path $b -ErrorAction SilentlyContinue | ForEach-Object { Remove-ItemProperty -Path $_.PSPath -Name 'TcpDelAckTicks' -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/registry-entry-control-tcp-acknowledgment-behavior",
+      "https://learn.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting"
+    ]
+  },
+  {
+    "id": "network.tcp-autotuning-disable",
+    "category": "network",
+    "title": "Отключение автонастройки окна приёма TCP (autotuninglevel=disabled)",
+    "description": "Популярный «твик» фиксирует окно приёма TCP на 64 КБ. Не включаем; доступно только восстановление normal.",
+    "recommendation": "Для игр: не трогать. На UDP-игры не влияет, а скачивания (Steam, патчи) замедляет.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft описывает уровни автонастройки (disabled фиксирует окно на значении по умолчанию). При больших задержке × пропускной способности отключение режет скорость TCP; на задержку игровых UDP-пакетов не влияет. Bufferbloat лечится на роутере (SQM), а не этим параметром.",
+    "risk": "medium",
+    "riskNote": "Резкое падение скорости загрузок на быстрых/дальних соединениях.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: normal (прочитано: netsh int tcp show global на 23H2).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "netsh int tcp set global autotuninglevel=normal | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: int tcp set global autotuninglevel=normal' }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting",
+      "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc731258(v=ws.10)",
+      "https://pureinfotech.com/disable-window-auto-tuning-fix-slow-internet-speeds-windows-10/"
+    ]
+  },
+  {
+    "id": "network.tcp-heuristics",
+    "category": "network",
+    "title": "netsh int tcp set heuristics (Window Scaling heuristics)",
+    "description": "Старый твик отключения эвристик масштабирования окна. Не включаем.",
+    "recommendation": "Для игр: бесполезно.",
+    "evidence": "avoid",
+    "evidenceNote": "На Win11 23H2 сам netsh сообщает: «Window scaling heuristics are not supported in this version of Windows. Changing window scaling heuristics settings will have no effect».",
+    "risk": "low",
+    "riskNote": "Ничего не делает.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11 (на Win10 — НЕ ПРОВЕРЕНО, но параметр также не используется с Windows 8.1, по сообщению netsh).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc731258(v=ws.10)"
+    ]
+  },
+  {
+    "id": "network.rss-disable",
+    "category": "network",
+    "title": "Отключение Receive Side Scaling (RSS)",
+    "description": "Отключение распределения обработки входящего трафика по ядрам CPU. Не включаем; доступно только восстановление.",
+    "recommendation": "Для игр: не отключать. RSS должен быть включён (это дефолт).",
+    "evidence": "avoid",
+    "evidenceNote": "Без RSS вся обработка приёма (DPC) идёт на одном ядре, обычно CPU 0, где и так много прерываний. valleyofdoom (замер трафика Valorant ~300 кбит/с): в матче реально используются не более 2 очередей RSS — вреда от RSS нет, выигрыша от отключения тоже.",
+    "risk": "medium",
+    "riskNote": "Рост DPC-нагрузки на одно ядро, просадки при загрузках.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: глобально rss=enabled, у адаптера *RSS=1 (MS-стандарт).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "netsh int tcp set global rss=default | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: int tcp set global rss=default' }"
+      },
+      {
+        "type": "powershell",
+        "script": "$kw=@('*RSS'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/standardized-inf-keywords-for-rss",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/research.md",
+      "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc731258(v=ws.10)"
+    ]
+  },
+  {
+    "id": "network.rsc-disable",
+    "category": "network",
+    "title": "Отключить Receive Segment Coalescing (RSC)",
+    "description": "Отключает объединение входящих TCP-сегментов в один большой пакет перед передачей стеку.",
+    "recommendation": "Для игр: эксперимент. На UDP-игры не влияет; многие встроенные сетевые карты (например, Realtek RTL8168) RSC не поддерживают вовсе.",
+    "evidence": "experimental",
+    "evidenceNote": "RSC касается только TCP-приёма и снижает нагрузку CPU на скачиваниях. Утверждения о снижении задержки для игр — без воспроизводимых замеров. На машине разработчика netsh int tcp show rscstats: Realtek PCIe GbE — «Hardware capability» (не поддерживается), т.е. твик — пустая операция.",
+    "risk": "low",
+    "riskNote": "Чуть выше нагрузка CPU при больших TCP-загрузках.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: rsc=enabled (Get-NetOffloadGlobalSetting на 23H2).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "netsh int tcp set global rsc=disabled | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: int tcp set global rsc=disabled' }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "netsh int tcp set global rsc=default | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: int tcp set global rsc=default' }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "if ((Get-NetOffloadGlobalSetting).ReceiveSegmentCoalescing -eq 'Disabled') { '1' } else { '0' }",
+      "equals": "1"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc731258(v=ws.10)",
+      "https://learn.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting"
+    ]
+  },
+  {
+    "id": "network.ecn-enable",
+    "category": "network",
+    "title": "Включить ECN для TCP",
+    "description": "Разрешает TCP-соединениям согласовывать Explicit Congestion Notification (маркировку перегрузки вместо потерь).",
+    "recommendation": "Для игр: эксперимент. UDP-игры не затрагивает; польза только если роутер/провайдер маркирует ECN (fq_codel/CAKE/L4S).",
+    "evidence": "experimental",
+    "evidenceNote": "Механизм документирован Microsoft (Set-NetTCPSetting -EcnCapability). На клиентских Windows по умолчанию выключен. Выигрыш в задержке возможен только при AQM с ECN-маркировкой на узком месте; для игрового UDP-трафика эффекта нет. Отдельные старые middlebox-устройства некорректно обрабатывают ECN-биты.",
+    "risk": "low",
+    "riskNote": "Редкие проблемы соединения с некорректными middlebox; откат мгновенный.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт клиента: disabled (прочитано на 23H2).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "netsh int tcp set global ecncapability=enabled | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: int tcp set global ecncapability=enabled' }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "netsh int tcp set global ecncapability=default | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: int tcp set global ecncapability=default' }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "if ((Get-NetTCPSetting -SettingName Internet).EcnCapability -eq 'Enabled') { '1' } else { '0' }",
+      "equals": "1"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting",
+      "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc731258(v=ws.10)"
+    ]
+  },
+  {
+    "id": "network.tcp-timestamps",
+    "category": "network",
+    "title": "RFC 1323 Timestamps (вкл/выкл)",
+    "description": "Твики включают или выключают TCP timestamps «для пинга». Не включаем; доступно только восстановление дефолта.",
+    "recommendation": "Для игр: не трогать — на UDP-игры не влияет, на TCP практического эффекта для задержки нет.",
+    "evidence": "avoid",
+    "evidenceNote": "Timestamps служат для измерения RTT и защиты от переполнения номеров последовательности (Microsoft, Set-NetTCPSetting -Timestamps). Влияния на игровую задержку не показано. На машине разработчика значение изменено (netsh: enabled, в реестре Tcp1323Opts=2) — пример следа от старых твикеров.",
+    "risk": "low",
+    "riskNote": "Отключение может ухудшить восстановление после потерь на быстрых каналах.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. По справке netsh дефолт — «allowed» (включать только если инициирует удалённая сторона); revert через timestamps=default. Значение Tcp1323Opts в реестре не трогаем (НЕ ПРОВЕРЕНО, создаётся ли оно netsh).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "netsh int tcp set global timestamps=default | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: int tcp set global timestamps=default' }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting",
+      "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc731258(v=ws.10)"
+    ]
+  },
+  {
+    "id": "network.tcp-initial-rto",
+    "category": "network",
+    "title": "Initial RTO (тайм-аут повтора SYN)",
+    "description": "Изменение начального тайм-аута повторной отправки SYN при установке TCP-соединения. Не включаем; доступно только восстановление 1000 мс.",
+    "recommendation": "Для игр: не трогать — влияет только на установку TCP-соединения при потере SYN.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: InitialRtoMs — «период до повторной отправки SYN», 300–3000 мс. На уже установленное соединение и тем более на UDP не влияет.",
+    "risk": "low",
+    "riskNote": "Слишком малые значения — лишние SYN-повторы на плохих каналах.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. На Win11 23H2 текущее значение 1000 мс (Get-NetTCPSetting/netsh); справка netsh («default: 3000») устарела. Что 1000 — дефолт чистой Win10 22H2, НЕ ПРОВЕРЕНО на чистой установке (соответствует RFC 6298).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "netsh int tcp set global initialrto=1000 | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: int tcp set global initialrto=1000' }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting",
+      "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc731258(v=ws.10)"
+    ]
+  },
+  {
+    "id": "network.congestion-bbr2",
+    "category": "network",
+    "title": "Алгоритм перегрузки BBR2 (netsh supplemental congestionprovider=bbr2)",
+    "description": "Переключение шаблонов TCP с CUBIC на экспериментальный BBR2. Не включаем; доступно только возвращение CUBIC.",
+    "recommendation": "Для игр: не использовать. На UDP-игры не влияет, а на Win11 24H2 есть массовые жалобы на поломку Steam и локальных сервисов.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft представляла BBRv2 в Windows как экспериментальную реализацию (доклад IETF ICCRG 112, ECN не реализован); официальной документации для клиентов нет. Пользователи сообщают о неработающих Steam, Plex и локальных API после включения BBR2, лечится возвратом CUBIC. Алгоритм управляет только скоростью TCP-отправки и не меняет задержку игровых UDP-пакетов.",
+    "risk": "high",
+    "riskNote": "Неработающие локальные соединения (Steam, лаунчеры, localhost-API) на 24H2+.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "BBR2 доступен только в Win11 22H2+ (на 23H2 в справке netsh есть bbr2). Дефолт Windows 10 1709+ и Windows 11: CUBIC для шаблонов Internet/InternetCustom/Datacenter/DatacenterCustom, NewReno для Compat (прочитано Get-NetTCPSetting на 23H2). Compat не трогаем.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "foreach ($t in @('internet','internetcustom','datacenter','datacentercustom')) { netsh int tcp set supplemental template=$t congestionprovider=cubic | Out-Null }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://datatracker.ietf.org/meeting/112/materials/slides-112-iccrg-an-update-on-rledbat-and-bbrv2-00",
+      "https://www.speedguide.net/forums/viewtopic.php?p=2444459",
+      "https://steamcommunity.com/discussions/forum/1/4333106230734794460/",
+      "https://learn.microsoft.com/en-us/powershell/module/nettcpip/set-nettcpsetting"
+    ]
+  },
+  {
+    "id": "network.udp-uro-disable",
+    "category": "network",
+    "title": "Отключить UDP Receive Offload (URO)",
+    "description": "Отключает объединение входящих UDP-дейтаграмм одного потока (программное и, на 24H2+, аппаратное URO).",
+    "recommendation": "Для игр: эксперимент. Игры не запрашивают объединённые дейтаграммы — для их сокетов стек разрезает их обратно; польза отключения не доказана.",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft: URO (аппаратное — с Windows 11 24H2) объединяет UDP-дейтаграммы одного потока ради экономии CPU; сокеты, не включившие UDP_RECV_MAX_COALESCED_SIZE, получают пакеты пересобранными по одному. Теоретически объединение может держать пакеты до конца пачки, но замеров влияния на игровую задержку нет. На машине разработчика Receive Offload State = enabled.",
+    "risk": "low",
+    "riskNote": "Чуть выше нагрузка CPU на высокоскоростных UDP/QUIC-загрузках.",
+    "reboot": "none",
+    "os": [
+      "win11"
+    ],
+    "osNote": "Только Windows 11 (netsh int udp set global uro=… есть на 23H2; на Win10 22H2 — НЕ ПРОВЕРЕНО, предположительно отсутствует). Аппаратное URO — 24H2+ и только с поддерживающими драйверами (ключ *UdpRsc). Проверка состояния парсит вывод netsh (на ru-RU вывод английский — проверено).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "netsh int udp set global uro=disabled | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: int udp set global uro=disabled' }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "netsh int udp set global uro=default | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: int udp set global uro=default' }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$o = (netsh int udp show global | Out-String); if ($o -match 'Receive Offload State\\s*:\\s*disabled') { '1' } else { '0' }",
+      "equals": "1"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/udp-rsc-offload",
+      "https://learn.microsoft.com/en-us/windows/win32/winsock/ipproto-udp-socket-options"
+    ]
+  },
+  {
+    "id": "network.dns-provider",
+    "category": "network",
+    "title": "Публичный DNS (Cloudflare / Google / Quad9)",
+    "description": "Прописывает DNS-серверы (IPv4 и IPv6) на активных физических адаптерах вместо выдаваемых роутером/провайдером. VPN и виртуальные адаптеры не трогаются.",
+    "recommendation": "Для игр: пинг в матче не меняет. Помогает, если DNS провайдера медленный/нестабильный (долгий вход в лаунчер, ошибки подключения к матчмейкингу).",
+    "evidence": "situational",
+    "evidenceNote": "DNS влияет только на разрешение имён (вход, подбор, загрузки), а не на задержку игрового трафика. Выигрыш есть, только если текущий резолвер медленный или «падает». Перед применением приложение должно замерить время ответа (Resolve-DnsName -Server … -DnsOnly) и показать пользователю — как бенчмарк в winutil.",
+    "risk": "low",
+    "riskNote": "Ломает разрешение локальных имён роутера/провайдера и captive-портал в гостиничном Wi-Fi; в отдельных сетях публичные DNS блокируются. Откат возвращает DNS от DHCP.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11 (Set-DnsClientServerAddress). Дефолт Windows — DNS от DHCP (ResetServerAddresses). IP: Cloudflare 1.1.1.1/1.0.0.1, 2606:4700:4700::1111/::1001; Google 8.8.8.8/8.8.4.4, 2001:4860:4860::8888/::8844; Quad9 9.9.9.9/149.112.112.112, 2620:fe::fe/2620:fe::9.",
+    "vendor": "any",
+    "kind": "select",
+    "options": [
+      {
+        "label": "Cloudflare (1.1.1.1)",
+        "value": "cloudflare"
+      },
+      {
+        "label": "Google (8.8.8.8)",
+        "value": "google"
+      },
+      {
+        "label": "Quad9 (9.9.9.9)",
+        "value": "quad9"
+      }
+    ],
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$v='{{value}}'; $m=@{ 'cloudflare'=@('1.1.1.1','1.0.0.1','2606:4700:4700::1111','2606:4700:4700::1001'); 'google'=@('8.8.8.8','8.8.4.4','2001:4860:4860::8888','2001:4860:4860::8844'); 'quad9'=@('9.9.9.9','149.112.112.112','2620:fe::fe','2620:fe::9') }; $s=$m[$v]; if (-not $s) { throw ('unknown DNS provider: ' + $v) }; foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' })) { Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ServerAddresses @($s[0],$s[1]); Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ServerAddresses @($s[2],$s[3]) }; Clear-DnsClientCache"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ResetServerAddresses }; Clear-DnsClientCache"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$m=@{ 'cloudflare'='1.1.1.1'; 'google'='8.8.8.8'; 'quad9'='9.9.9.9' }; $res=''; $a=@(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' }); if ($a.Count -gt 0) { $s=@((Get-DnsClientServerAddress -InterfaceIndex $a[0].ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue).ServerAddresses); foreach ($k in $m.Keys) { if ($s.Count -gt 0 -and $s[0] -eq $m[$k]) { $res=$k } } }; $res",
+      "equals": "{{value}}"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/powershell/module/dnsclient/set-dnsclientserveraddress",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/dns.json",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/functions/private/Set-WinUtilDNS.ps1"
+    ]
+  },
+  {
+    "id": "network.dns-over-https",
+    "category": "network",
+    "title": "Шифрование DNS (DNS-over-HTTPS) для известных серверов",
+    "description": "Включает автоматический переход на DoH (AutoUpgrade) для встроенного списка Windows: Cloudflare, Google, Quad9. Работает, когда на адаптере прописан один из этих DNS.",
+    "recommendation": "Для игр: на пинг не влияет. Включать ради приватности и защиты от подмены DNS провайдером; лучше вместе с твиком «Публичный DNS».",
+    "evidence": "situational",
+    "evidenceNote": "Документировано Microsoft (DoH-клиент; Set-DnsClientDohServerAddress -AutoUpgrade: шифровать все запросы к серверу, если он задан на адаптере). Это функция приватности, а не скорости: первый запрос через HTTPS может быть медленнее. Разрешаем откат на обычный DNS (AllowFallbackToUdp=$true), чтобы при блокировке DoH не пропал интернет.",
+    "risk": "low",
+    "riskNote": "При fallback=true возможен незаметный откат на нешифрованный DNS. В некоторых сетях (в т.ч. в РФ) доступность DoH-резолверов нестабильна — без fallback пропало бы разрешение имён (НЕ ПРОВЕРЕНО актуальное состояние блокировок).",
+    "reboot": "none",
+    "os": [
+      "win11"
+    ],
+    "osNote": "Только Windows 11 (build 22000+); на Windows 10 22H2 DoH-клиента нет. Встроенный список: HKLM\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters\\DohWellKnownServers (12 адресов на 23H2). Дефолт для них: AutoUpgrade=False, AllowFallbackToUdp=False (прочитано Get-DnsClientDohServerAddress). Параметры «Шифрование DNS» в «Параметрах» Windows пишут ещё и DohFlags на интерфейс — здесь не используются.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "if (-not (Get-Command Set-DnsClientDohServerAddress -ErrorAction SilentlyContinue)) { throw 'DoH client requires Windows 11' }; $w='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters\\DohWellKnownServers'; foreach ($ip in @(Get-ChildItem -Path $w -ErrorAction SilentlyContinue | ForEach-Object { $_.PSChildName })) { $e=Get-DnsClientDohServerAddress -ServerAddress $ip -ErrorAction SilentlyContinue; if ($e) { Set-DnsClientDohServerAddress -ServerAddress $ip -DohTemplate $e.DohTemplate -AutoUpgrade $true -AllowFallbackToUdp $true | Out-Null } }; Clear-DnsClientCache"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "if (Get-Command Set-DnsClientDohServerAddress -ErrorAction SilentlyContinue) { $w='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters\\DohWellKnownServers'; foreach ($ip in @(Get-ChildItem -Path $w -ErrorAction SilentlyContinue | ForEach-Object { $_.PSChildName })) { $e=Get-DnsClientDohServerAddress -ServerAddress $ip -ErrorAction SilentlyContinue; if ($e) { Set-DnsClientDohServerAddress -ServerAddress $ip -DohTemplate $e.DohTemplate -AutoUpgrade $false -AllowFallbackToUdp $false | Out-Null } }; Clear-DnsClientCache }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$r='0'; if (Get-Command Get-DnsClientDohServerAddress -ErrorAction SilentlyContinue) { $w='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Dnscache\\Parameters\\DohWellKnownServers'; $ips=@(Get-ChildItem -Path $w -ErrorAction SilentlyContinue | ForEach-Object { $_.PSChildName }); $e=@($ips | ForEach-Object { Get-DnsClientDohServerAddress -ServerAddress $_ -ErrorAction SilentlyContinue }); if ($e.Count -gt 0 -and -not ($e | Where-Object { -not $_.AutoUpgrade })) { $r='1' } }; $r",
+      "equals": "1"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-server/networking/dns/doh-client-support",
+      "https://learn.microsoft.com/en-us/powershell/module/dnsclient/set-dnsclientdohserveraddress",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/functions/private/Set-WinUtilDNS.ps1"
+    ]
+  },
+  {
+    "id": "network.qos-dscp-game",
+    "category": "network",
+    "title": "QoS-метка DSCP 46 для игры",
+    "description": "Создаёт политику QoS: исходящие пакеты выбранной игры помечаются DSCP 46 (Expedited Forwarding). Добавляет параметр «Do not use NLA», без которого метки на ПК вне домена могут не ставиться.",
+    "recommendation": "Для игр: имеет смысл только с роутером, который учитывает DSCP (SQM/CAKE diffserv, WMM-приоритеты Wi-Fi), и при загруженном канале. Без такого роутера ничего не меняет.",
+    "evidence": "situational",
+    "evidenceNote": "Сама маркировка документирована (New-NetQosPolicy -DSCPAction 0–63; Microsoft рекомендует \"Do not use NLA\"=\"1\" для ПК вне домена/с несколькими адаптерами). Проверить можно захватом пакетов (поле DSCP: 46) — методика valleyofdoom. Но приоритет даёт только устройство, которое читает DSCP: обычный домашний роутер без QoS и провайдеры метки игнорируют или обнуляют. Ускорения «через интернет» нет; польза — при перегруженном аплинке и QoS-роутере.",
+    "risk": "low",
+    "riskNote": "Изредка метки EF на загруженном Wi-Fi ухудшают «честность» для других клиентов. Откат удаляет только политики hateeze и параметр \"Do not use NLA\" (если его использует другое ПО, например корпоративный клиент, — тоже будет удалён).",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Политика создаётся в хранилище localhost (persist; владелец «Group Policy (Machine)», реестр HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\QoS\\<имя>). \"Do not use NLA\" (HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\QoS, REG_SZ \"1\") по документации требует перезагрузки; по умолчанию отсутствует. Имена exe актуальны на 2026 — НЕ ПРОВЕРЕНО для каждой игры (Apex с DX12 — r5apex_dx12.exe).",
+    "vendor": "any",
+    "kind": "select",
+    "options": [
+      {
+        "label": "Counter-Strike 2 (cs2.exe)",
+        "value": "cs2.exe"
+      },
+      {
+        "label": "Dota 2 (dota2.exe)",
+        "value": "dota2.exe"
+      },
+      {
+        "label": "Valorant (VALORANT-Win64-Shipping.exe)",
+        "value": "VALORANT-Win64-Shipping.exe"
+      },
+      {
+        "label": "Fortnite (FortniteClient-Win64-Shipping.exe)",
+        "value": "FortniteClient-Win64-Shipping.exe"
+      },
+      {
+        "label": "Apex Legends (r5apex.exe)",
+        "value": "r5apex.exe"
+      },
+      {
+        "label": "Apex Legends DX12 (r5apex_dx12.exe)",
+        "value": "r5apex_dx12.exe"
+      },
+      {
+        "label": "PUBG (TslGame.exe)",
+        "value": "TslGame.exe"
+      },
+      {
+        "label": "Overwatch 2 (Overwatch.exe)",
+        "value": "Overwatch.exe"
+      },
+      {
+        "label": "League of Legends (League of Legends.exe)",
+        "value": "League of Legends.exe"
+      },
+      {
+        "label": "Rust (RustClient.exe)",
+        "value": "RustClient.exe"
+      },
+      {
+        "label": "Escape from Tarkov (EscapeFromTarkov.exe)",
+        "value": "EscapeFromTarkov.exe"
+      },
+      {
+        "label": "Мир танков / World of Tanks (WorldOfTanks.exe)",
+        "value": "WorldOfTanks.exe"
+      }
+    ],
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$exe='{{value}}'; Get-NetQosPolicy -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'hateeze-dscp46-*' } | ForEach-Object { Remove-NetQosPolicy -Name $_.Name -Confirm:$false -ErrorAction SilentlyContinue }; New-NetQosPolicy -Name ('hateeze-dscp46-' + $exe) -AppPathNameMatchCondition $exe -DSCPAction 46 -NetworkProfile All -IPProtocolMatchCondition Both | Out-Null; $q='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\QoS'; if (-not (Test-Path $q)) { New-Item -Path $q -Force | Out-Null }; New-ItemProperty -Path $q -Name 'Do not use NLA' -PropertyType String -Value '1' -Force | Out-Null"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "Get-NetQosPolicy -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'hateeze-dscp46-*' } | ForEach-Object { Remove-NetQosPolicy -Name $_.Name -Confirm:$false -ErrorAction SilentlyContinue }; Remove-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\QoS' -Name 'Do not use NLA' -ErrorAction SilentlyContinue"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$p=@(Get-NetQosPolicy -ErrorAction SilentlyContinue | Where-Object { $_.Name -like 'hateeze-dscp46-*' }); if ($p.Count -gt 0) { $p[0].Name.Substring(15) } else { '' }",
+      "equals": "{{value}}"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/powershell/module/netqos/new-netqospolicy",
+      "https://learn.microsoft.com/en-us/powershell/module/netqos/remove-netqospolicy",
+      "https://learn.microsoft.com/en-us/skypeforbusiness/manage/network-management/qos/configuring-port-ranges-for-your-skype-clients",
+      "https://github.com/valleyofdoom/PC-Tuning",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/research.md",
+      "https://www.cisco.com/c/en/us/support/docs/quality-of-service-qos/qos-configuration-monitoring/221868-enable-dscp-qos-tagging-on-windows-machi.html"
+    ]
+  },
+  {
+    "id": "network.nic-interrupt-moderation-off",
+    "category": "network",
+    "title": "Отключить Interrupt Moderation сетевой карты",
+    "description": "Сетевая карта генерирует прерывание на каждый пакет, а не пачками. Задержка доставки пакета в стек снижается на десятки–сотни микросекунд ценой большего числа прерываний и DPC.",
+    "recommendation": "Для игр: эксперимент. Выигрыш — доли миллисекунды при пинге в десятки мс; при загрузках число прерываний растёт в разы и может мешать вводу/звуку. Для Intel разумный компромисс — Interrupt Moderation Rate = Medium/Low (вручную).",
+    "evidence": "experimental",
+    "evidenceNote": "Microsoft: при модерации карта ждёт новые пакеты или тайм-аут, поэтому RTT пакета становится больше среднего. Замер djdallmann (Intel Gigabit CT, 30 с, ~900 Мбит/с TCP): Adaptive — 200 000 прерываний, Off — 2 650 000 (×13); автор рекомендует Medium/Adaptive, а Off — только для синтетики. Игровой трафик мал (Valorant ~300 кбит/с — valleyofdoom), поэтому влияние на задержку игры ничтожно, но риск DPC-нагрузки при скачиваниях реален.",
+    "risk": "medium",
+    "riskNote": "Рост числа прерываний/DPC (LatencyMon), возможные микрофризы ввода/звука при загрузках. Кратковременный обрыв сети (перезапуск адаптера) при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Стандартный ключ NDIS *InterruptModeration: 0/1, дефолт MS — 1; драйвер Realtek 10.80 — тоже 1 (на машине разработчика уже стоит 0 — изменено пользователем). Intel дополнительно имеет «ITR» с разными наборами значений по драйверам (I219: 65535 Adaptive…0 Off; I225: 500…0, дефолт 64) — не хардкодить.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "nic",
+        "keyword": "*InterruptModeration",
+        "value": "0"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*InterruptModeration'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/interrupt-moderation",
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/enumeration-keywords",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/RESEARCH/NETWORK/README.md",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/DOCS/NETWORK/README.md",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/research.md",
+      "https://edc.intel.com/content/www/us/en/design/products/ethernet/adapters-and-devices-user-guide/interrupt-moderation-rate"
+    ]
+  },
+  {
+    "id": "network.nic-eee-off",
+    "category": "network",
+    "title": "Отключить Energy-Efficient Ethernet (EEE, 802.3az)",
+    "description": "Запрещает сетевой карте переводить линк в режим пониженного энергопотребления (LPI) в паузах трафика. Включает стандартный *EEE и вендорские аналоги (Realtek AdvancedEEE, Intel EEELinkAdvertisement).",
+    "recommendation": "Для игр: включить, если есть обрывы линка, «просыпания» сети или скачки пинга по проводу. На стабильной сети эффект незаметен.",
+    "evidence": "situational",
+    "evidenceNote": "Ключ *EEE стандартизирован Microsoft (0/1). Время выхода из LPI по IEEE 802.3az: ≤16,5 мкс для 1000BASE-T и ≤30 мкс для 100BASE-TX — на пинг в мс не влияет. Реальная польза — совместимость: с частью коммутаторов/роутеров EEE вызывает разрывы и переподключения линка.",
+    "risk": "low",
+    "riskNote": "Чуть выше энергопотребление (доли ватта). Кратковременный обрыв сети при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт *EEE по стандарту MS — 1, но у драйверов различается: Realtek RTL8168H/8125 (драйверы 2021–2026) — 0, часть RTL8168E — 1 (по INF). Поэтому откат — сброс к дефолту драйвера (Reset-NetAdapterAdvancedProperty), а не фиксированное значение.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "nic",
+        "keyword": "*EEE",
+        "value": "0"
+      },
+      {
+        "type": "nic",
+        "keyword": "AdvancedEEE",
+        "value": "0"
+      },
+      {
+        "type": "nic",
+        "keyword": "EEELinkAdvertisement",
+        "value": "0"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*EEE','AdvancedEEE','EEELinkAdvertisement'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/standardized-inf-keywords-for-power-management",
+      "https://www.ieee802.org/3/NGBASET/public/sep12/bennett_01a_0912.pdf",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/DOCS/NETWORK/README.md"
+    ]
+  },
+  {
+    "id": "network.nic-vendor-power-saving-off",
+    "category": "network",
+    "title": "Отключить вендорские режимы энергосбережения NIC (Green Ethernet, Power Saving Mode, ULP)",
+    "description": "Realtek: EnableGreenEthernet=0, PowerSavingMode=0; Intel: ULPMode=0 (Ultra Low Power). Применяется только к адаптерам, у которых есть эти параметры.",
+    "recommendation": "Для игр: эксперимент; включать при проблемах с линком после простоя/сна. На задержку в игре не влияет.",
+    "evidence": "experimental",
+    "evidenceNote": "Это вендорские параметры без публичной документации о влиянии на задержку. Green Ethernet снижает мощность в зависимости от длины кабеля/простоя, PowerSavingMode и ULP касаются в основном состояния без линка. Замеров влияния на игровую задержку нет; есть отдельные отчёты о стабилизации линка.",
+    "risk": "low",
+    "riskNote": "Чуть выше энергопотребление. Кратковременный обрыв сети при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолты драйвера разные: Realtek 10.80 (RTL8168H) — EnableGreenEthernet=1, PowerSavingMode=0; inbox RTL8125 — EnableGreenEthernet=0; Intel I219 (net1ic64.inf) — ULPMode=1. Откат — сброс к дефолту драйвера.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "nic",
+        "keyword": "EnableGreenEthernet",
+        "value": "0"
+      },
+      {
+        "type": "nic",
+        "keyword": "PowerSavingMode",
+        "value": "0"
+      },
+      {
+        "type": "nic",
+        "keyword": "ULPMode",
+        "value": "0"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('EnableGreenEthernet','PowerSavingMode','ULPMode'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/DOCS/NETWORK/README.md",
+      "https://learn.microsoft.com/en-us/powershell/module/netadapter/set-netadapteradvancedproperty"
+    ]
+  },
+  {
+    "id": "network.nic-gigalite-off",
+    "category": "network",
+    "title": "Отключение Realtek Gigabit Lite",
+    "description": "GigaLite позволяет Realtek держать ~500 Мбит/с по 2-парному кабелю. Отключение часто советуют «для пинга». Не включаем; доступен только сброс.",
+    "recommendation": "Для игр: не трогать. На исправном 4-парном кабеле параметр ни на что не влияет.",
+    "evidence": "avoid",
+    "evidenceNote": "GigaLite активен лишь когда физически доступны 2 пары; на 4-парном кабеле линк 1 Гбит/с независимо от настройки. При неисправном кабеле отключение уронит линк до 100 Мбит/с. Доказательств влияния на задержку нет.",
+    "risk": "low",
+    "riskNote": "При плохом кабеле — падение скорости до 100 Мбит/с.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11, только Realtek. Дефолт драйвера 10.80 (RTL8168H): 1.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('GigaLite'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/powershell/module/netadapter/set-netadapteradvancedproperty"
+    ]
+  },
+  {
+    "id": "network.nic-flow-control-off",
+    "category": "network",
+    "title": "Отключить Flow Control (кадры PAUSE 802.3x)",
+    "description": "Сетевая карта перестаёт отправлять/учитывать кадры паузы Ethernet.",
+    "recommendation": "Для игр: эксперимент. Дома пауза почти никогда не срабатывает; отключение может дать потери кадров при перегрузке коммутатора.",
+    "evidence": "experimental",
+    "evidenceNote": "Ключ *FlowControl стандартизирован (0 — выкл, 3 — Rx&Tx; дефолт клиента 3, сервера 0). djdallmann рекомендует Disabled, но без замеров влияния на задержку и с оговоркой о возможных потерях кадров. Microsoft отмечает, что PAUSE-кадры могут «замораживать» коммутатор (сценарий отладки ядра).",
+    "risk": "low",
+    "riskNote": "Возможны потери кадров и снижение скорости при перегрузке/медленном партнёре по линку. Кратковременный обрыв при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт клиента: 3 (Rx & Tx); у Realtek 10.80 и Intel inbox — 3.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "nic",
+        "keyword": "*FlowControl",
+        "value": "0"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*FlowControl'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/enumeration-keywords",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/DOCS/NETWORK/README.md"
+    ]
+  },
+  {
+    "id": "network.nic-buffers-max",
+    "category": "network",
+    "title": "Буферы приёма/передачи NIC — на максимум",
+    "description": "Устанавливает *ReceiveBuffers и *TransmitBuffers в максимальное значение, допустимое драйвером (читается из драйвера).",
+    "recommendation": "Для игр: включить, только если в статистике адаптера есть отброшенные пакеты (ReceivedDiscardedPackets) при загрузках. Задержку не уменьшает.",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft: при слишком малом *ReceiveBuffers адаптеру не хватает дескрипторов под нагрузкой (потери), слишком большой — трата памяти. djdallmann советует ≥1024 при наличии памяти и контроль отброшенных пакетов. На задержку пакета не влияет; польза — меньше потерь при всплесках. На Realtek 10.80 (RTL8168H) дефолт уже максимален (512/128) — твик ничего не меняет.",
+    "risk": "low",
+    "riskNote": "Небольшой рост потребления неподкачиваемой памяти. Кратковременный обрыв при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолты драйверов: Realtek RTL8168H 512/128 (макс. 512/128), Intel I219 256/512 (макс. 2048/2048), Intel I225 1024/1024 (макс. 2048/2048). Откат — сброс к дефолту драйвера.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*ReceiveBuffers','*TransmitBuffers'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { foreach ($p in @(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword })) { $max=$null; if ($p.NumericParameterMaxValue) { $max=[string]$p.NumericParameterMaxValue } elseif ($p.ValidRegistryValues) { $max=[string]((@($p.ValidRegistryValues | ForEach-Object { [int]$_ }) | Measure-Object -Maximum).Maximum) }; if ($max -and (($p.RegistryValue -join '') -ne $max)) { $p | Set-NetAdapterAdvancedProperty -RegistryValue $max -NoRestart; if ($r -notcontains $a.Name) { $r+=$a.Name } } } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*ReceiveBuffers','*TransmitBuffers'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$kw=@('*ReceiveBuffers','*TransmitBuffers'); $n=0; $ok=0; foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { foreach ($p in @(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword })) { $max=$null; if ($p.NumericParameterMaxValue) { $max=[string]$p.NumericParameterMaxValue } elseif ($p.ValidRegistryValues) { $max=[string]((@($p.ValidRegistryValues | ForEach-Object { [int]$_ }) | Measure-Object -Maximum).Maximum) }; if ($max) { $n++; if (($p.RegistryValue -join '') -eq $max) { $ok++ } } } }; if ($n -gt 0 -and $ok -eq $n) { '1' } else { '0' }",
+      "equals": "1"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/keywords-that-can-be-edited",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/DOCS/NETWORK/README.md"
+    ]
+  },
+  {
+    "id": "network.nic-jumbo-frames",
+    "category": "network",
+    "title": "Jumbo Frames (*JumboPacket > 1514)",
+    "description": "Увеличение MTU кадра Ethernet до 4–9 КБ. Не включаем; доступен только сброс.",
+    "recommendation": "Для игр: не включать. Интернет работает с MTU 1500; игровые пакеты маленькие.",
+    "evidence": "avoid",
+    "evidenceNote": "Jumbo-кадры требуют поддержки всеми устройствами сегмента и полезны только в локальной сети для больших передач. Для интернета и игр выигрыша нет, возможны «чёрные дыры» MTU и потери.",
+    "risk": "medium",
+    "riskNote": "Потери/зависания соединений с устройствами без поддержки Jumbo.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: 1514 (стандарт MS).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*JumboPacket'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/keywords-that-can-be-edited",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/DOCS/NETWORK/README.md"
+    ]
+  },
+  {
+    "id": "network.nic-lso-off",
+    "category": "network",
+    "title": "Отключить Large Send Offload v2 (IPv4/IPv6)",
+    "description": "Сегментация больших исходящих TCP-блоков выполняется процессором, а не сетевой картой.",
+    "recommendation": "Для игр: эксперимент. Касается только исходящего TCP; на UDP-игры не влияет.",
+    "evidence": "experimental",
+    "evidenceNote": "LSO влияет только на отправку TCP. djdallmann советует отключать LSOv2, но без замеров влияния на задержку; аргумент «LSO создаёт пачки пакетов» относится к выгрузке файлов/стримингу, не к игре. Отключение повышает нагрузку на CPU при отдаче.",
+    "risk": "low",
+    "riskNote": "Выше нагрузка CPU при больших отдачах (стрим, облако). Кратковременный обрыв при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: 1 (стандарт MS; Realtek 10.80 — 1).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "nic",
+        "keyword": "*LsoV2IPv4",
+        "value": "0"
+      },
+      {
+        "type": "nic",
+        "keyword": "*LsoV2IPv6",
+        "value": "0"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*LsoV2IPv4','*LsoV2IPv6'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/enumeration-keywords",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/DOCS/NETWORK/README.md"
+    ]
+  },
+  {
+    "id": "network.nic-checksum-offload-off",
+    "category": "network",
+    "title": "Отключение аппаратного расчёта контрольных сумм (Checksum Offload)",
+    "description": "Перенос расчёта контрольных сумм IP/TCP/UDP с сетевой карты на CPU. Не включаем; доступен только сброс.",
+    "recommendation": "Для игр: не отключать — это лишняя нагрузка на CPU без выигрыша.",
+    "evidence": "avoid",
+    "evidenceNote": "Стандартные ключи NDIS (*IPChecksumOffloadIPv4, *TCP/UDPChecksumOffloadIPv4/IPv6; дефолт 3 = Rx&Tx). Даже djdallmann рекомендует оставлять их включёнными. Влияния отключения на задержку не показано.",
+    "risk": "low",
+    "riskNote": "Рост нагрузки CPU.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: 3.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*IPChecksumOffloadIPv4','*TCPChecksumOffloadIPv4','*TCPChecksumOffloadIPv6','*UDPChecksumOffloadIPv4','*UDPChecksumOffloadIPv6'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/enumeration-keywords",
+      "https://github.com/djdallmann/GamingPCSetup/blob/master/CONTENT/DOCS/NETWORK/README.md"
+    ]
+  },
+  {
+    "id": "network.nic-wake-on-lan-off",
+    "category": "network",
+    "title": "Отключить Wake-on-LAN",
+    "description": "Запрещает будить ПК из сна/выключения сетевыми пакетами (Magic Packet, совпадение шаблона, S5 WoL у Realtek, S0ix).",
+    "recommendation": "Для игр: на производительность не влияет. Включать, если ПК самопроизвольно просыпается или не нужен удалённый запуск.",
+    "evidence": "situational",
+    "evidenceNote": "Стандартные ключи Microsoft *WakeOnMagicPacket, *WakeOnPattern (дефолт 1), *ModernStandbyWoLMagicPacket (дефолт 0); S5WakeOnLan — Realtek. Действует только в состояниях сна/выключения — на работу в игре не влияет. Польза — отсутствие случайных пробуждений.",
+    "risk": "low",
+    "riskNote": "Перестанет работать удалённое включение ПК по сети. Кратковременный обрыв при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолты драйвера Realtek 10.80: *WakeOnMagicPacket=1, *WakeOnPattern=1, S5WakeOnLan=1, *ModernStandbyWoLMagicPacket=0. Откат — сброс к дефолту драйвера.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "nic",
+        "keyword": "*WakeOnMagicPacket",
+        "value": "0"
+      },
+      {
+        "type": "nic",
+        "keyword": "*WakeOnPattern",
+        "value": "0"
+      },
+      {
+        "type": "nic",
+        "keyword": "S5WakeOnLan",
+        "value": "0"
+      },
+      {
+        "type": "nic",
+        "keyword": "*ModernStandbyWoLMagicPacket",
+        "value": "0"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*WakeOnMagicPacket','*WakeOnPattern','S5WakeOnLan','*ModernStandbyWoLMagicPacket'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/standardized-inf-keywords-for-power-management"
+    ]
+  },
+  {
+    "id": "network.nic-pm-offload-off",
+    "category": "network",
+    "title": "Отключение ARP/NS Offload (*PMARPOffload, *PMNSOffload)",
+    "description": "Эти функции отвечают на ARP/NS-запросы, пока ПК спит. Не включаем; доступен только сброс.",
+    "recommendation": "Для игр: бесполезно — работает только во сне.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: ARP/NS offload включается, «когда система входит в состояние сна». В рабочем состоянии не действует, на игру не влияет.",
+    "risk": "low",
+    "riskNote": "Отключение может мешать пробуждению по сети и сетевому присутствию во сне.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: 1.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*PMARPOffload','*PMNSOffload'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/standardized-inf-keywords-for-power-management"
+    ]
+  },
+  {
+    "id": "network.nic-priority-vlan-off",
+    "category": "network",
+    "title": "Изменение Packet Priority & VLAN (*PriorityVLANTag)",
+    "description": "Отключение вставки тегов 802.1Q/802.1p. Не включаем; доступен только сброс.",
+    "recommendation": "Для игр: не трогать — в домашней сети теги не используются, а для QoS 802.1p они нужны.",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: ключ определяет, вставляет ли карта теги 802.1Q и передаёт ли их в OOB-данные; на задержку не влияет. Дефолт 3 (Priority & VLAN).",
+    "risk": "low",
+    "riskNote": "Перестанет работать 802.1p-приоритет/VLAN, если они используются.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: 3.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*PriorityVLANTag'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/enumeration-keywords"
+    ]
+  },
+  {
+    "id": "network.nic-rss-queues",
+    "category": "network",
+    "title": "Изменение числа очередей RSS (*NumRssQueues)",
+    "description": "Подбор количества очередей RSS «для игр». Не включаем; доступен только сброс.",
+    "recommendation": "Для игр: не трогать.",
+    "evidence": "avoid",
+    "evidenceNote": "valleyofdoom (xperf, имитация трафика Valorant ~300 кбит/с): в матче фактически работают не более 2 очередей/ядер, больше — не вредно. Измеримого выигрыша от изменения числа очередей для игры нет.",
+    "risk": "low",
+    "riskNote": "Слишком мало очередей — нагрузка на одно ядро при загрузках.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт драйвера: Realtek 10.80 — 4, Intel I219 — 2, Intel I225 — 4.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*NumRssQueues'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/standardized-inf-keywords-for-rss",
+      "https://github.com/valleyofdoom/PC-Tuning/blob/main/docs/research.md"
+    ]
+  },
+  {
+    "id": "network.nic-selective-suspend-off",
+    "category": "network",
+    "title": "Отключить Selective Suspend сетевого адаптера",
+    "description": "Запрещает USB-/NetAdapterCx-адаптерам (USB-Ethernet, часть Wi-Fi) засыпать при простое (*SelectiveSuspend = 0).",
+    "recommendation": "Для игр: включить для USB-сетевых адаптеров и Wi-Fi-донглов, которые «просыпаются» с задержкой. У встроенных PCIe-карт параметра обычно нет.",
+    "evidence": "situational",
+    "evidenceNote": "Стандартный ключ NDIS для адаптеров с поддержкой selective suspend. Помогает против задержки первого пакета после простоя и обрывов USB-адаптеров; на активный игровой трафик не влияет. У Realtek PCIe на машине разработчика: SelectiveSuspend = Unsupported (Get-NetAdapterPowerManagement).",
+    "risk": "low",
+    "riskNote": "Выше энергопотребление (ноутбук). Кратковременный обрыв при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт драйвера обычно 1. Откат — сброс к дефолту драйвера.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "nic",
+        "keyword": "*SelectiveSuspend",
+        "value": "0"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('*SelectiveSuspend'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/standardized-inf-keywords-for-network-devices",
+      "https://learn.microsoft.com/en-us/windows-hardware/drivers/network/standardized-inf-keywords-for-power-management"
+    ]
+  },
+  {
+    "id": "network.nic-allow-power-off-disable",
+    "category": "network",
+    "title": "Запретить Windows отключать сетевую карту для экономии энергии",
+    "description": "PnPCapabilities = 24 (0x18) в ключе класса сетевых адаптеров: снимает галочки «Разрешить отключение этого устройства для экономии энергии» и (вместе с ней) пробуждение по сети.",
+    "recommendation": "Для игр: включить, если сеть пропадает после сна/простоя или адаптер «засыпает». В активной игре на задержку не влияет.",
+    "evidence": "situational",
+    "evidenceNote": "Метод из Microsoft KB 2740020 (Windows 7/2008 R2; статья снята, но механизм NDIS сохранился). На Win11 23H2 у Realtek с PnPCapabilities=0x18 WMI MSPower_DeviceEnable.Enable=False и MSPower_DeviceWakeEnable.Enable=False — проверено чтением на машине разработчика. На Q&A Microsoft есть сообщения, что на некоторых Win10-системах галочка не меняется; к драйверам NetAdapterCx способ не применим.",
+    "risk": "low",
+    "riskNote": "Перестанет работать пробуждение по сети. Требуется перезагрузка (или перезапуск адаптера).",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11, NDIS-драйверы (не NetAdapterCx). По умолчанию значение PnPCapabilities отсутствует (на машине разработчика у Realtek и TAP уже 24 — изменено ранее). Ключ: HKLM\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e972-e325-11ce-bfc1-08002be10318}\\NNNN, где NetCfgInstanceId = InterfaceGuid физического адаптера.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$cls='HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e972-e325-11ce-bfc1-08002be10318}'; $g=@(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | ForEach-Object { $_.InterfaceGuid }); $keys=@(Get-ChildItem -Path $cls -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -match '^\\d{4}$' } | Where-Object { $id=(Get-ItemProperty -Path $_.PSPath -Name NetCfgInstanceId -ErrorAction SilentlyContinue).NetCfgInstanceId; $id -and ($g -contains $id) }); foreach ($k in $keys) { New-ItemProperty -Path $k.PSPath -Name 'PnPCapabilities' -PropertyType DWord -Value 24 -Force | Out-Null }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$cls='HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e972-e325-11ce-bfc1-08002be10318}'; $g=@(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | ForEach-Object { $_.InterfaceGuid }); $keys=@(Get-ChildItem -Path $cls -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -match '^\\d{4}$' } | Where-Object { $id=(Get-ItemProperty -Path $_.PSPath -Name NetCfgInstanceId -ErrorAction SilentlyContinue).NetCfgInstanceId; $id -and ($g -contains $id) }); foreach ($k in $keys) { Remove-ItemProperty -Path $k.PSPath -Name 'PnPCapabilities' -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$cls='HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e972-e325-11ce-bfc1-08002be10318}'; $g=@(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | ForEach-Object { $_.InterfaceGuid }); $keys=@(Get-ChildItem -Path $cls -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -match '^\\d{4}$' } | Where-Object { $id=(Get-ItemProperty -Path $_.PSPath -Name NetCfgInstanceId -ErrorAction SilentlyContinue).NetCfgInstanceId; $id -and ($g -contains $id) }); $ok=@($keys | Where-Object { (Get-ItemProperty -Path $_.PSPath -ErrorAction SilentlyContinue).PnPCapabilities -eq 24 }); if ($keys.Count -gt 0 -and $ok.Count -eq $keys.Count) { '1' } else { '0' }",
+      "equals": "1"
+    },
+    "sources": [
+      "https://support.microsoft.com/kb/2740020",
+      "https://learn.microsoft.com/en-us/answers/questions/2848292/power-management-allow-the-computer-to-turn-off-th",
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "network.wifi-roam-aggressiveness-lowest",
+    "category": "network",
+    "title": "Wi-Fi Intel: агрессивность роуминга — минимальная",
+    "description": "Адаптер реже ищет «лучшую» точку доступа (RoamAggressiveness = 0 «Lowest»), меньше фоновых сканирований и переключений.",
+    "recommendation": "Для игр: включить на стационарном ПК/ноутбуке с одной точкой доступа. В mesh-сетях и при перемещениях — оставить Medium.",
+    "evidence": "situational",
+    "evidenceNote": "Intel: параметр задаёт порог сигнала, при котором адаптер начинает искать другую точку доступа; рекомендованное Intel значение — Medium. Фоновое сканирование вызывает периодические скачки пинга на Wi-Fi; меньшая агрессивность их сокращает, но публичных замеров для игр нет. Ключ и значения проверены по inbox-INF Intel netwtw10.inf: 0 Lowest … 4 Highest, дефолт 2.",
+    "risk": "low",
+    "riskNote": "При слабом сигнале адаптер дольше «держится» за плохую точку. Кратковременный обрыв Wi-Fi при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11, только Intel Wi-Fi (Netwtw*). Ключ у других вендоров иной (НЕ ПРОВЕРЕНО) — nic-действие просто пропустит адаптер без ключа.",
+    "vendor": "intel",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "nic",
+        "keyword": "RoamAggressiveness",
+        "value": "0"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('RoamAggressiveness'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://www.intel.com/content/www/us/en/support/articles/000005585/wireless.html"
+    ]
+  },
+  {
+    "id": "network.wifi-mimo-power-save-off",
+    "category": "network",
+    "title": "Wi-Fi Intel: отключить MIMO Power Save (No SMPS)",
+    "description": "Все антенны адаптера остаются активными (MIMOPowerSaveMode = 3 «No SMPS») вместо экономии на одной антенне.",
+    "recommendation": "Для игр: эксперимент, в первую очередь для ноутбуков с нестабильным Wi-Fi.",
+    "evidence": "experimental",
+    "evidenceNote": "Intel: SMPS экономит энергию, оставляя «слушать» одну антенну; No SMPS держит все антенны и может обходить проблемы со старыми точками доступа. Замеров влияния на задержку нет. Значения по inbox-INF netwtw10.inf: 0 Auto SMPS (дефолт), 1 Static, 2 Dynamic, 3 No SMPS.",
+    "risk": "low",
+    "riskNote": "Выше энергопотребление Wi-Fi. Кратковременный обрыв Wi-Fi при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11, только Intel Wi-Fi.",
+    "vendor": "intel",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "nic",
+        "keyword": "MIMOPowerSaveMode",
+        "value": "3"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('MIMOPowerSaveMode'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://www.intel.com/content/www/us/en/support/articles/000005585/wireless.html"
+    ]
+  },
+  {
+    "id": "network.wifi-bg-scan-blocking",
+    "category": "network",
+    "title": "Wi-Fi Intel: блокировать фоновое сканирование при хорошем сигнале",
+    "description": "Global BG Scan blocking = 1 «On Good RSSI»: адаптер не сканирует эфир в фоне, пока сигнал хороший.",
+    "recommendation": "Для игр: эксперимент против периодических скачков пинга на Wi-Fi. Не включать на ноутбуке, который часто переносят между точками.",
+    "evidence": "experimental",
+    "evidenceNote": "Intel описывает параметр как управление периодическими фоновыми сканированиями и не советует менять его тем, кто перемещается. Периодические скачки пинга от фонового сканирования — частая жалоба, но воспроизводимых замеров эффекта именно этого параметра нет. Значения (netwtw10.inf): 0 Never (дефолт), 1 On Good RSSI, 2 Always.",
+    "risk": "low",
+    "riskNote": "Хуже роуминг между точками доступа. Кратковременный обрыв Wi-Fi при применении.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11, только Intel Wi-Fi.",
+    "vendor": "intel",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "nic",
+        "keyword": "BgScanGlobalBlocking",
+        "value": "1"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$kw=@('BgScanGlobalBlocking'); $r=@(); foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=@(Get-NetAdapterAdvancedProperty -Name $a.Name -ErrorAction SilentlyContinue | Where-Object { $kw -contains $_.RegistryKeyword }); if ($p.Count -gt 0) { $p | Reset-NetAdapterAdvancedProperty -NoRestart -ErrorAction SilentlyContinue; $r+=$a.Name } }; if ($r.Count -gt 0) { Restart-NetAdapter -Name $r -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://www.intel.com/content/www/us/en/support/articles/000005585/wireless.html"
+    ]
+  },
+  {
+    "id": "network.wifi-power-saving-plan",
+    "category": "network",
+    "title": "Wi-Fi: максимальная производительность и от батареи",
+    "description": "Параметр схемы питания «Режим энергосбережения беспроводного адаптера» = «Максимальная производительность» для питания от сети и от батареи.",
+    "recommendation": "Для игр: включить на ноутбуке, если играете от батареи по Wi-Fi. От сети Windows и так использует максимальную производительность.",
+    "evidence": "situational",
+    "evidenceNote": "Документированный параметр схемы питания (802.11 Power Save на стороне драйвера). В «Сбалансированной» схеме от сети уже 0 (макс. производительность), от батареи — 2 (среднее энергосбережение), что добавляет задержку пробуждения радио. На ПК без батареи эффекта нет. Intel не рекомендует менять настройки питания Wi-Fi без необходимости.",
+    "risk": "low",
+    "riskNote": "Быстрее разряд батареи ноутбука.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Подгруппа 19cbb8fa-5279-450e-9fac-8a3d5fedd0c1, параметр 12bbebe6-58d6-4636-95bb-3217ef867c1a; значения 0 Max Performance, 1 Low, 2 Medium, 3 Max Power Saving. Дефолт «Сбалансированной»: AC=0, DC=2; «Высокой производительности»: AC=0, DC=0 (прочитано powercfg на 23H2). Алиаса нет.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "power",
+        "subgroup": "19cbb8fa-5279-450e-9fac-8a3d5fedd0c1",
+        "setting": "12bbebe6-58d6-4636-95bb-3217ef867c1a",
+        "alias": "WIFI_POWER_SAVING_MODE",
+        "ac": 0,
+        "dc": 0
+      }
+    ],
+    "revert": [
+      {
+        "type": "power",
+        "subgroup": "19cbb8fa-5279-450e-9fac-8a3d5fedd0c1",
+        "setting": "12bbebe6-58d6-4636-95bb-3217ef867c1a",
+        "alias": "WIFI_POWER_SAVING_MODE",
+        "ac": 0,
+        "dc": 2
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/power/power-setting-guids",
+      "https://www.intel.com/content/www/us/en/support/articles/000005585/wireless.html"
+    ]
+  },
+  {
+    "id": "network.prefer-ipv4",
+    "category": "network",
+    "title": "Предпочитать IPv4 вместо IPv6",
+    "description": "DisabledComponents = 0x20: при наличии обоих адресов Windows выбирает IPv4. IPv6 остаётся включённым.",
+    "recommendation": "Для игр: включить, только если IPv6 у провайдера работает плохо (выше пинг/обрывы через IPv6). При исправном IPv6 эффекта нет.",
+    "evidence": "situational",
+    "evidenceNote": "Microsoft рекомендует именно «Prefer IPv4 over IPv6» вместо отключения IPv6. По умолчанию Windows предпочитает IPv6; если маршрут по IPv6 хуже, лаунчеры и игры с dual-stack пойдут по IPv4. При нормальном IPv6 выигрыша нет.",
+    "risk": "low",
+    "riskNote": "Если ранее в DisabledComponents были другие биты, они будут перезаписаны. Требуется перезагрузка.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: значения нет (0). Значения, отличные от 0 и 32, ломают службу RRAS (по Microsoft).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters",
+        "name": "DisabledComponents",
+        "valueType": "DWORD",
+        "value": 32,
+        "op": "set"
+      }
+    ],
+    "revert": [
+      {
+        "type": "reg",
+        "hive": "HKLM",
+        "path": "SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters",
+        "name": "DisabledComponents",
+        "valueType": "DWORD",
+        "value": null,
+        "op": "delete"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/configure-ipv6-in-windows",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "network.disable-ipv6",
+    "category": "network",
+    "title": "Полное отключение IPv6",
+    "description": "DisabledComponents = 0xFF и/или снятие привязки ms_tcpip6 с адаптеров. Не включаем; доступно только восстановление.",
+    "recommendation": "Для игр: не отключать. Если IPv6 мешает — используйте «Предпочитать IPv4».",
+    "evidence": "avoid",
+    "evidenceNote": "Microsoft: IPv6 — обязательная часть Windows; отключать IPv6, его компоненты или отвязывать от адаптеров не рекомендуется — часть компонентов Windows может перестать работать; неверное значение 0xFFFFFFFF даёт +5 с к загрузке. Игровой выигрыш не показан.",
+    "risk": "high",
+    "riskNote": "Неработающие компоненты Windows (Xbox-сеть, HomeGroup/службы, RRAS), задержка загрузки при 0xFFFFFFFF.",
+    "reboot": "reboot",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Откат сохраняет бит 0x20 (если включён твик «Предпочитать IPv4»), удаляет остальные биты и восстанавливает привязку IPv6 на физических адаптерах.",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$k='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\Tcpip6\\Parameters'; $v=(Get-ItemProperty -Path $k -ErrorAction SilentlyContinue).DisabledComponents; if ($null -ne $v) { $n=([int]$v) -band 0x20; if ($n -eq 0) { Remove-ItemProperty -Path $k -Name 'DisabledComponents' -ErrorAction SilentlyContinue } else { Set-ItemProperty -Path $k -Name 'DisabledComponents' -Value $n -Type DWord } }; Get-NetAdapter -Physical -ErrorAction SilentlyContinue | ForEach-Object { Enable-NetAdapterBinding -Name $_.Name -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/configure-ipv6-in-windows",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "network.disable-teredo",
+    "category": "network",
+    "title": "Отключение Teredo",
+    "description": "netsh interface teredo set state disabled. Не включаем; доступно только восстановление.",
+    "recommendation": "Для игр: не трогать — Teredo нужен сетевым функциям Xbox (party chat, NAT в Xbox-играх).",
+    "evidence": "avoid",
+    "evidenceNote": "По Microsoft, ISATAP и Teredo по умолчанию не используются для обычного трафика (туннель поднимается при необходимости). Отключение не снижает задержку, но ломает Xbox Networking (тип NAT «Teredo не может квалифицироваться»).",
+    "risk": "medium",
+    "riskNote": "Неработающий голосовой чат/мультиплеер в Xbox/Game Pass-играх.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: type=default. На машине разработчика Teredo уже в состоянии disabled (изменено ранее).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "netsh interface teredo set state type=default | Out-Null; if ($LASTEXITCODE -ne 0) { throw 'netsh failed: interface teredo set state type=default' }"
+      }
+    ],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/configure-ipv6-in-windows",
+      "https://github.com/ChrisTitusTech/winutil/blob/main/config/tweaks.json"
+    ]
+  },
+  {
+    "id": "network.netbios-off",
+    "category": "network",
+    "title": "Отключить NetBIOS через TCP/IP на физических адаптерах",
+    "description": "NetbiosOptions = 2: Windows перестаёт слушать порты 137–139 и рассылать NetBIOS-широковещание.",
+    "recommendation": "Для игр: на задержку не влияет; включать ради «тишины» в сети и уменьшения поверхности атаки, если не нужен доступ к старым NAS/ПК по NetBIOS-именам.",
+    "evidence": "situational",
+    "evidenceNote": "Документированная настройка (Win32_NetworkAdapterConfiguration.SetTcpipNetbios: 0 — по DHCP, 1 — вкл, 2 — выкл). valleyofdoom отключает её «чтобы не было лишнего прослушивания». Производительного эффекта нет, только безопасность/шум.",
+    "risk": "low",
+    "riskNote": "Перестанут находиться по имени старые устройства/SMB1-шары в локальной сети. Для новых адаптеров настройку нужно повторять.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: NetbiosOptions = 0 (REG_DWORD в HKLM\\SYSTEM\\CurrentControlSet\\Services\\NetBT\\Parameters\\Interfaces\\Tcpip_{GUID}; прочитано на 23H2). Применяется сразу через WMI-метод SetTcpipNetbios (только для адаптеров с включённым IP).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [
+      {
+        "type": "powershell",
+        "script": "$g=@(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | ForEach-Object { $_.InterfaceGuid }); Get-CimInstance -ClassName Win32_NetworkAdapterConfiguration -ErrorAction SilentlyContinue | Where-Object { $g -contains $_.SettingID } | ForEach-Object { Invoke-CimMethod -InputObject $_ -MethodName SetTcpipNetbios -Arguments @{ TcpipNetbiosOptions = [uint32]2 } | Out-Null }"
+      }
+    ],
+    "revert": [
+      {
+        "type": "powershell",
+        "script": "$g=@(Get-NetAdapter -Physical -ErrorAction SilentlyContinue | ForEach-Object { $_.InterfaceGuid }); Get-CimInstance -ClassName Win32_NetworkAdapterConfiguration -ErrorAction SilentlyContinue | Where-Object { $g -contains $_.SettingID } | ForEach-Object { Invoke-CimMethod -InputObject $_ -MethodName SetTcpipNetbios -Arguments @{ TcpipNetbiosOptions = [uint32]0 } | Out-Null }"
+      }
+    ],
+    "detect": {
+      "type": "powershell",
+      "script": "$b='HKLM:\\SYSTEM\\CurrentControlSet\\Services\\NetBT\\Parameters\\Interfaces'; $n=0; $ok=0; foreach ($a in @(Get-NetAdapter -Physical -ErrorAction SilentlyContinue)) { $p=Join-Path $b ('Tcpip_' + $a.InterfaceGuid); if (Test-Path $p) { $n++; if ((Get-ItemProperty -Path $p -ErrorAction SilentlyContinue).NetbiosOptions -eq 2) { $ok++ } } }; if ($n -gt 0 -and $ok -eq $n) { '1' } else { '0' }",
+      "equals": "1"
+    },
+    "sources": [
+      "https://learn.microsoft.com/en-us/windows/win32/cimwin32prov/settcpipnetbios-method-in-class-win32-networkadapterconfiguration",
+      "https://github.com/valleyofdoom/PC-Tuning"
+    ]
+  },
+  {
+    "id": "network.mtu-change",
+    "category": "network",
+    "title": "Ручное изменение MTU интерфейса",
+    "description": "Уменьшение/подбор MTU (netsh interface ipv4 set subinterface … mtu=…) «для пинга». Не включаем.",
+    "recommendation": "Для игр: не трогать. Игровые пакеты много меньше MTU; Windows сама определяет Path MTU.",
+    "evidence": "avoid",
+    "evidenceNote": "Игровые UDP-пакеты обычно 50–1200 байт, поэтому MTU 1500 их не фрагментирует; уменьшение MTU только увеличивает число пакетов в TCP-загрузках. Обоснованная правка нужна лишь при PPPoE/туннелях с поломанным PMTUD — это делает роутер/VPN.",
+    "risk": "medium",
+    "riskNote": "Неверный MTU — «зависающие» сайты/загрузки и фрагментация.",
+    "reboot": "none",
+    "os": [
+      "win10",
+      "win11"
+    ],
+    "osNote": "Windows 10/11. Дефолт: 1500 для Ethernet (NlMtu, прочитано Get-NetIPInterface).",
+    "vendor": "any",
+    "kind": "toggle",
+    "apply": [],
+    "revert": [],
+    "detect": null,
+    "sources": [
+      "https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2008-R2-and-2008/cc731258(v=ws.10)"
+    ]
+  }
+]
