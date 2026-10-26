@@ -8,6 +8,8 @@
 
 **Tech Stack:** .NET 10 (net10.0-windows, x64), WinForms, Microsoft.Web.WebView2, Microsoft.Extensions.DependencyInjection, Microsoft.Diagnostics.Tracing.TraceEvent, xUnit; Node 24, Vite, React 19, TypeScript, lucide-react, @fontsource/jetbrains-mono.
 
+> **Поправки от 2026-10-26.** `docs/DECISIONS.md` и `docs/catalog-format-v1.md` важнее этого плана там, где они расходятся. Главное: интерфейс на Svelte 5, а не React (Task 5 переписать перед выполнением); формат каталога и типы `TweakDef`/`TweakAction` (Task 3) — по `catalog-format-v1.md` (`kind: info`, `options` вместо `Range`, `{{nvidiaGpuIndex}}`, `nic` с `op: reset`); горячая клавиша — двойное нажатие; адрес интерфейса — `https://app.hateeze.example/`.
+
 **Spec:** `docs/superpowers/specs/2026-10-26-hateeze-tweaker-design.md` — читать вместе с этим планом. Исследования с точными значениями: `docs/research/*.md` и `docs/research/*.tweaks.json`. Утверждённый дизайн: `design/mockup-overview.html`.
 
 ## Global Constraints

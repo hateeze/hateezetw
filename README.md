@@ -16,6 +16,7 @@
 2. Прочитать [состояние и передачу работы](docs/HANDOFF.md).
 3. Свериться со [спецификацией](docs/superpowers/specs/2026-10-26-hateeze-tweaker-design.md) и [планом](docs/superpowers/plans/2026-10-26-hateeze-tweaker.md).
 4. Использовать [макет](design/mockup-overview.html) как визуальный ориентир.
+5. Принятые решения — [DECISIONS](docs/DECISIONS.md), состояние исследований — [STATUS](docs/research/STATUS.md), формат каталога твиков — [catalog-format-v1](docs/catalog-format-v1.md).
 
 ## Проверка на Windows
 
@@ -24,6 +25,13 @@
 ```powershell
 dotnet build hateeze.sln
 dotnet test hateeze.sln
+```
+
+Проверка каталогов твиков (нужен только Node.js):
+
+```bash
+node tools/catalog/validate.mjs
+node --test tools/catalog/*.test.mjs
 ```
 
 Наличие тестового проекта само по себе не означает наличие проверок. Системные изменения, установщики и экспериментальные пробы на машине разработчика не запускать.

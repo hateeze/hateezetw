@@ -1,6 +1,6 @@
 # hateeze — твикер Windows для игр. Спецификация v1
 
-Дата: 2026-10-26. Статус: черновик на ревью.
+Дата: 2026-10-26. Статус: черновик на ревью. Решения по расхождениям с исследованиями — `docs/DECISIONS.md`.
 
 ## 1. Цель и критерии успеха
 
@@ -28,7 +28,7 @@
 hateeze.exe  (.NET 10, win-x64, self-contained single-file, requireAdministrator)
  ├─ Hateeze.App      — окно WinForms без рамки + WebView2 на весь размер, мост JS↔C#, горячая клавиша, трей нет
  ├─ Hateeze.Core     — вся логика: движок твиков, каталог, журнал/снимки, функции разделов, P/Invoke, загрузчики
- └─ web/dist         — интерфейс (Vite + TypeScript), встроен в exe как ресурсы и отдаётся с https://app.hateeze/
+ └─ web/dist         — интерфейс (Vite + Svelte 5 + TypeScript), встроен в exe как ресурсы и отдаётся с https://app.hateeze.example/
 ```
 
 - **Почему так.** Чтобы стекло с размытием и преломлением выглядело правильно, интерфейс рисуется в WebView2 (Chromium) средствами CSS. Вся работа с системой — на C# с прямым доступом к Win32/ETW/NVAPI. WebView2 Runtime встроен в Windows 11. На Windows 10 без Runtime приложение предлагает поставить Evergreen Bootstrapper.
@@ -44,13 +44,13 @@ hateeze/
   src/Hateeze.App/            Program.cs, MainForm.cs, Bridge/, app.manifest, hateeze.ico
   src/Hateeze.Core/           Interop/, Platform/, Engine/, Features/<Feature>/, Catalog/*.json (EmbeddedResource)
   tests/Hateeze.Core.Tests/   xUnit; Fakes/ — поддельные платформенные сервисы
-  web/                        Vite + TypeScript; src/app/, src/ui/ (дизайн-система), src/pages/<feature>/, src/api/
+  web/                        Vite + Svelte 5 + TypeScript; src/app/, src/ui/ (дизайн-система), src/pages/<feature>/, src/api/
   docs/                       research/, superpowers/specs, superpowers/plans
   design/                     утверждённые макеты
   build.ps1                   сборка web → копирование в ресурсы → dotnet publish
 ```
 
-**Правило расширяемости, без общих файлов-реестров.** Функция C# — это класс `: IFeatureModule` в `Features/<X>/`, его находит сканирование сборки при старте. Страница интерфейса — `web/src/pages/<x>/index.tsx` с экспортом `meta` (id, название, группа меню, иконка, порядок); её подхватывает `import.meta.glob`. Новый раздел не требует правок чужих файлов. Это позволяет нескольким разработчикам работать параллельно без конфликтов.
+**Правило расширяемости, без общих файлов-реестров.** Функция C# — это класс `: IFeatureModule` в `Features/<X>/`, его находит сканирование сборки при старте. Страница интерфейса — папка `web/src/pages/<x>/` с `meta.ts` (id, название, группа меню, иконка, порядок) и компонентом `Page.svelte`; её подхватывает `import.meta.glob`. Новый раздел не требует правок чужих файлов. Это позволяет нескольким разработчикам работать параллельно без конфликтов.
 
 ## 3. Мост интерфейс ↔ ядро
 
@@ -65,8 +65,10 @@ hateeze/
 ## 4. Движок твиков
 
 ### 4.1 Каталог
-Твики описаны JSON-файлами `Catalog/*.tweaks.json` (формат — в `docs/research/*.tweaks.json`; это единый источник):
-`id, category, title, description, recommendation, evidence (proven|situational|experimental|avoid), evidenceNote, risk (low|medium|high), riskNote, reboot (none|explorer|logoff|reboot), os, osNote, vendor, kind (toggle|value|select), options, apply[], revert[], detect, sources[]`.
+Твики описаны JSON-файлами `Catalog/*.tweaks.json`. Формат — `docs/catalog-format-v1.md`, проверка — `tools/catalog/validate.mjs`:
+`id, category, title, description, recommendation, evidence (proven|situational|experimental|avoid), evidenceNote, risk (low|medium|high), riskNote, reboot (none|explorer|logoff|reboot), os, osNote, vendor, kind (toggle|value|select|info), options, apply[], revert[], detect, sources[]`.
+
+- `info` — карточка-рекомендация без действий (BIOS, особенности CPU).
 
 - `avoid`-записи в интерфейс не попадают. Они нужны, чтобы тест каталога не дал случайно добавить вредный твик под тем же ключом реестра.
 - `experimental` показываются только в разделе «Эксперимент», с баннером «эффект не доказан».
@@ -83,7 +85,7 @@ hateeze/
 ### 4.3 Откат
 - **Один твик.** Каждая его цель возвращается к значению из `baseline.json` — то есть к состоянию до первого касания hateeze. Если цели в baseline нет, используется `revert` из каталога (дефолты Windows).
 - **«Вернуть всё».** Каждая цель, которая встречалась в журнале, возвращается к baseline в порядке, обратном первому касанию. Затем показывается итог по каждому пункту.
-- **Ctrl+Alt+Shift+R** (глобальная клавиша, работает при открытом приложении). Выполняет «Вернуть всё», затем перезагружает компьютер после 10-секундного отсчёта с кнопкой отмены.
+- **Ctrl+Alt+Shift+R** (глобальная клавиша, работает при открытом приложении). Срабатывает при двойном нажатии за 3 с. Показывает 10-секундный отсчёт с кнопкой отмены, затем выполняет «Вернуть всё» и перезагружает компьютер. Если откат прошёл с ошибками, перезагрузки нет — показывается итог.
 - Журнал не удаляется. Откат добавляет в него свои записи.
 
 ### 4.4 Безопасность
@@ -169,7 +171,7 @@ _Детали — по итогам `docs/research/app-installers-ddu-update.md`
 - **Фон:** 4 медленно плывущих серебристых блика (белый, холодный серый, тёплый серый), зерно, виньетка. `prefers-reduced-motion` останавливает анимацию.
 - **Производительность:** `backdrop-filter` только на панелях, не на строках таблиц. Графики — `<canvas>` (uPlot или свой рендер).
 - **Компоненты:** Button (primary/ghost/danger), Toggle (пружинная анимация), Slider, NumberField с диапазоном, Select, Chip оценки, RiskBadge, Card/GlassPanel, Table с сортировкой и виртуализацией (процессы, ETW-модули), Tabs/Segmented, Modal подтверждения, Toast, ProgressBar операций, EmptyState, TweakRow, TweakList.
-- **Иконки:** Lucide (MIT), встроенный SVG-спрайт.
+- **Иконки:** Lucide (ISC), встроенный SVG-спрайт.
 
 ## 12. Обработка ошибок
 - Любая ошибка ядра попадает в интерфейс как тост с русским текстом и кнопкой «подробнее» (детали из лога).
